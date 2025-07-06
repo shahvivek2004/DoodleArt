@@ -209,7 +209,7 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
                             <div className="flex flex-row gap-2">
                                 <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(2)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 2 }) }}><Tooltip label="Thin-line"><Image src="/line.svg" alt="thin-line" width={23} height={23} /></Tooltip></button>
                                 <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(4)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 4 }) }}><Tooltip label="Normal-line"><Image src="/line2.svg" alt="normal-line" width={23} height={23} /></Tooltip></button>
-                                <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(6)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 6 }) }}><Tooltip label="Thick-line"><Image src="/line3.svg" alt="thick-line" width={23} height={23} /></Tooltip></button>
+                                <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(8)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 8 }) }}><Tooltip label="Thick-line"><Image src="/line3.svg" alt="thick-line" width={23} height={23} /></Tooltip></button>
                             </div>
                         </div>
 
@@ -228,8 +228,8 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
                             <div>Font-size</div>
                             <div className="flex flex-row gap-2">
                                 <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(20)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 20 }) }}><Tooltip label="Small"><Image src="/small.svg" alt="small-font" width={23} height={23} /></Tooltip></button>
-                                <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(30)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 30 }) }}><Tooltip label="Medium"><Image src="/medium.svg" alt="medium-font" width={23} height={23} /></Tooltip></button>
-                                <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(40)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 40 }) }}><Tooltip label="Large"><Image src="/large.svg" alt="large-font" width={23} height={23} /></Tooltip></button>
+                                <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(40)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 40 }) }}><Tooltip label="Medium"><Image src="/medium.svg" alt="medium-font" width={23} height={23} /></Tooltip></button>
+                                <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(80)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 80 }) }}><Tooltip label="Large"><Image src="/large.svg" alt="large-font" width={23} height={23} /></Tooltip></button>
                             </div>
                         </div>
 

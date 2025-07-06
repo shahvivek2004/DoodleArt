@@ -681,8 +681,8 @@ export class Game {
     // Zoom functionality
     wheelHandler = (e: WheelEvent) => {
         e.preventDefault();
-
-        const zoomIntensity = 0.1;
+        
+        const zoomIntensity = 0.2;
         const wheel = e.deltaY < 0 ? 1 : -1;
         const zoom = Math.exp(wheel * zoomIntensity);
 
