@@ -1,25 +1,99 @@
-FROM node:22-alpine
+# FROM node:22-alpine
+
+# # Install pnpm
+# RUN npm install -g pnpm
+
+# WORKDIR /usr/src/app
+
+# # Copy package files
+# COPY ./packages ./packages
+# COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+# COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+# COPY ./package.json ./package.json
+# COPY ./turbo.json ./turbo.json
+# COPY ./apps/http-backend ./apps/http-backend
+
+# # Install dependencies
+# RUN pnpm install
+
+# # Generate database (assuming this is a Prisma command or similar)
+# RUN pnpm run db:generate
+
+# EXPOSE 4000
+
+# # Start the backend
+# CMD ["pnpm", "run", "start:backend"]
+
+# Multi-stage build for optimization
+FROM node:22-alpine AS base
 
 # Install pnpm
 RUN npm install -g pnpm
 
+# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files
-COPY ./packages ./packages
-COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
-COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY ./package.json ./package.json
-COPY ./turbo.json ./turbo.json
-COPY ./apps/http-backend ./apps/http-backend
+# Copy workspace configuration
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json ./
 
-# Install dependencies
-RUN pnpm install
+# Stage 1: Install dependencies
+FROM base AS deps
+# Copy only package.json files first for better caching
+COPY packages/*/package.json ./packages/*/
+COPY apps/http-backend/package.json ./apps/http-backend/
 
-# Generate database (assuming this is a Prisma command or similar)
+# Install dependencies (including devDependencies for build)
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: Build the application
+FROM base AS builder
+# Copy node_modules from deps stage
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=deps /usr/src/app/packages ./packages
+
+# Copy source code
+COPY packages ./packages
+COPY apps/http-backend ./apps/http-backend
+
+# Generate database artifacts
 RUN pnpm run db:generate
+
+# Build the application (if you have a build step)
+# RUN pnpm run build:backend
+
+# Stage 3: Production image
+FROM node:22-alpine AS production
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+WORKDIR /usr/src/app
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json ./
+
+# Copy only production dependencies
+COPY --from=builder /usr/src/app/packages ./packages
+COPY --from=builder /usr/src/app/apps/http-backend ./apps/http-backend
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy generated database files
+COPY --from=builder /usr/src/app/packages ./packages
+
+# Change ownership to nodejs user
+RUN chown -R nodejs:nodejs /usr/src/app
+USER nodejs
 
 EXPOSE 4000
 
-# Start the backend
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+
 CMD ["pnpm", "run", "start:backend"]
