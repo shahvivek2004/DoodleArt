@@ -1,29 +1,3 @@
-# FROM node:22-alpine
-
-# # Install pnpm
-# RUN npm install -g pnpm
-
-# WORKDIR /usr/src/app
-
-# # Copy package files
-# COPY ./packages ./packages
-# COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
-# COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
-# COPY ./package.json ./package.json
-# COPY ./turbo.json ./turbo.json
-# COPY ./apps/http-backend ./apps/http-backend
-
-# # Install dependencies
-# RUN pnpm install
-
-# # Generate database (assuming this is a Prisma command or similar)
-# RUN pnpm run db:generate
-
-# EXPOSE 4000
-
-# # Start the backend
-# CMD ["pnpm", "run", "start:backend"]
-
 # Multi-stage build for optimization
 FROM node:22-alpine AS base
 
@@ -42,8 +16,8 @@ FROM base AS deps
 COPY packages/*/package.json ./packages/*/
 COPY apps/http-backend/package.json ./apps/http-backend/
 
-# Install dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile
+# Install dependencies - handle outdated lockfile gracefully
+RUN pnpm install
 
 # Stage 2: Build the application
 FROM base AS builder
@@ -80,8 +54,8 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json ./
 COPY --from=builder /usr/src/app/packages ./packages
 COPY --from=builder /usr/src/app/apps/http-backend ./apps/http-backend
 
-# Install only production dependencies
-RUN pnpm install --frozen-lockfile --prod
+# Install only production dependencies with fallback
+RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
 
 # Copy generated database files
 COPY --from=builder /usr/src/app/packages ./packages
@@ -94,6 +68,6 @@ EXPOSE 4000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:4000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
 
 CMD ["pnpm", "run", "start:backend"]

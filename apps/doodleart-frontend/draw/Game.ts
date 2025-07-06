@@ -485,8 +485,8 @@ export type Shape = {
 
 export class Game {
     private scale: number;
-    private minScale: number = 0.3;
-    private maxScale: number = 10;
+    private minScale: number = 0.2;
+    private maxScale: number = 15;
     public activeTextBox: TextBox | undefined;
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
@@ -679,65 +679,31 @@ export class Game {
     }
 
     // Zoom functionality
-    // wheelHandler = (e: WheelEvent) => {
-    //     e.preventDefault();
-
-    //     const zoomIntensity = 0.05;
-    //     const wheel = e.deltaY < 0 ? 1 : -1;
-    //     const zoom = Math.exp(wheel * zoomIntensity);
-
-    //     // Ensure canvas rect is current before zoom calculation
-    //     this.updateCanvasRect();
-
-    //     // Get mouse position relative to canvas
-    //     const mouseCanvasPos = this.getCanvasCoordinates(e.clientX, e.clientY);
-
-    //     // Calculate world position before zoom
-    //     const worldPosBefore = {
-    //         x: (mouseCanvasPos.x - this.panX) / this.scale,
-    //         y: (mouseCanvasPos.y - this.panY) / this.scale
-    //     };
-
-    //     // Apply zoom with limits
-    //     const newScale = this.scale * zoom;
-    //     if (newScale >= this.minScale && newScale <= this.maxScale) {
-    //         this.scale = newScale;
-
-    //         // Calculate the new pan position to keep the mouse position fixed
-    //         this.panX = mouseCanvasPos.x - worldPosBefore.x * this.scale;
-    //         this.panY = mouseCanvasPos.y - worldPosBefore.y * this.scale;
-
-    //         this.savePanPostions();
-    //         this.saveScale();
-    //         this.render();
-    //     }
-    // }
-
-    // clamped zoom
     wheelHandler = (e: WheelEvent) => {
         e.preventDefault();
 
-        const zoomIntensity = 2; // Try values between 0.05 and 0.2
-        const zoomFactor = Math.pow(1 + zoomIntensity, -e.deltaY / 100); // smoother than Math.exp
+        const zoomIntensity = 0.1;
+        const wheel = e.deltaY < 0 ? 1 : -1;
+        const zoom = Math.exp(wheel * zoomIntensity);
+
+        // Ensure canvas rect is current before zoom calculation
+        this.updateCanvasRect();
 
         // Get mouse position relative to canvas
-        this.updateCanvasRect();
         const mouseCanvasPos = this.getCanvasCoordinates(e.clientX, e.clientY);
 
-        // World position before zoom
+        // Calculate world position before zoom
         const worldPosBefore = {
             x: (mouseCanvasPos.x - this.panX) / this.scale,
             y: (mouseCanvasPos.y - this.panY) / this.scale
         };
 
-        // Proposed new scale
-        const newScale = this.scale * zoomFactor;
-
-        // Clamp scale to allowed range
+        // Apply zoom with limits
+        const newScale = this.scale * zoom;
         if (newScale >= this.minScale && newScale <= this.maxScale) {
             this.scale = newScale;
 
-            // Adjust pan to keep zoom centered on cursor
+            // Calculate the new pan position to keep the mouse position fixed
             this.panX = mouseCanvasPos.x - worldPosBefore.x * this.scale;
             this.panY = mouseCanvasPos.y - worldPosBefore.y * this.scale;
 
@@ -745,7 +711,41 @@ export class Game {
             this.saveScale();
             this.render();
         }
-    };
+    }
+
+    // clamped zoom    
+    // wheelHandler = (e: WheelEvent) => {
+    //     e.preventDefault();
+
+    //     const zoomIntensity = 2; // Try values between 0.05 and 0.2
+    //     const zoomFactor = Math.pow(1 + zoomIntensity, -e.deltaY / 100); // smoother than Math.exp
+
+    //     // Get mouse position relative to canvas
+    //     this.updateCanvasRect();
+    //     const mouseCanvasPos = this.getCanvasCoordinates(e.clientX, e.clientY);
+
+    //     // World position before zoom
+    //     const worldPosBefore = {
+    //         x: (mouseCanvasPos.x - this.panX) / this.scale,
+    //         y: (mouseCanvasPos.y - this.panY) / this.scale
+    //     };
+
+    //     // Proposed new scale
+    //     const newScale = this.scale * zoomFactor;
+
+    //     // Clamp scale to allowed range
+    //     if (newScale >= this.minScale && newScale <= this.maxScale) {
+    //         this.scale = newScale;
+
+    //         // Adjust pan to keep zoom centered on cursor
+    //         this.panX = mouseCanvasPos.x - worldPosBefore.x * this.scale;
+    //         this.panY = mouseCanvasPos.y - worldPosBefore.y * this.scale;
+
+    //         this.savePanPostions();
+    //         this.saveScale();
+    //         this.render();
+    //     }
+    // };
 
     screenToWorld(screenX: number, screenY: number) {
         const canvasCoords = this.getCanvasCoordinates(screenX, screenY);

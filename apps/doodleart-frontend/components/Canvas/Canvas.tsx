@@ -166,7 +166,7 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
     return (
         <div className={`relative h-screen w-screen overflow-hidden ${getCursorClass(selectedTool)}`}>
             {/* Canvas */}
-            <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className="absolute top-0 left-0 w-full h-full z-0" />
+            <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className="absolute top-0 left-0 w-screen h-screen z-0" />
 
             {/* Tool-bar */}
             <div className="absolute left-1/2 transform -translate-x-1/2 z-10">

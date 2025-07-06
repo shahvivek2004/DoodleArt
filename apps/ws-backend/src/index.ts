@@ -689,7 +689,7 @@ env.config();
 
 let users: User[] = [];
 // const MAX_CONNECTIONS = parseInt(process.env.MAX_CONNECTIONS || "1000");
-const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || "10000");
+// const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || "10000");
 const PING_INTERVAL = parseInt(process.env.PING_INTERVAL || "15000");
 const PING_TIMEOUT = parseInt(process.env.PING_TIMEOUT || "30000");
 
@@ -699,7 +699,6 @@ const PING_TIMEOUT = parseInt(process.env.PING_TIMEOUT || "30000");
 const wss = new WebSocketServer({
     port: parseInt(process.env.WEBSOCKET_PORT || "8080"),
     clientTracking: true,
-    maxPayload: MAX_MESSAGE_SIZE,
     perMessageDeflate: {
         zlibDeflateOptions: {
             level: 6,
@@ -709,22 +708,22 @@ const wss = new WebSocketServer({
 });
 
 // Logging utility
-function log(level: 'info' | 'warn' | 'error', message: string, meta?: any) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-        timestamp,
-        level,
-        message,
-        ...meta
-    };
+// function log(level: 'info' | 'warn' | 'error', message: string, meta?: any) {
+//     const timestamp = new Date().toISOString();
+//     const logEntry = {
+//         timestamp,
+//         level,
+//         message,
+//         ...meta
+//     };
 
-    if (process.env.NODE_ENV === 'production') {
-        // In production, use a proper logging service
-        console.log(JSON.stringify(logEntry));
-    } else {
-        console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}`, meta || '');
-    }
-}
+//     if (process.env.NODE_ENV === 'production') {
+//         // In production, use a proper logging service
+//         console.log(JSON.stringify(logEntry));
+//     } else {
+//         console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}`, meta || '');
+//     }
+// }
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
@@ -746,7 +745,7 @@ function checkUser(token: string): string | null {
         }
         return decoded.userId;
     } catch (error) {
-        log('warn', 'Invalid token attempt', { error: (error instanceof Error ? error.message : String(error)) });
+        //log('warn', 'Invalid token attempt', { error: (error instanceof Error ? error.message : String(error)) });
         return null;
     }
 }
@@ -925,12 +924,12 @@ function heartbeat(userId: string) {
 }
 
 function terminateConnection(ws: WebSocket, userId: string, reason: string = 'unknown') {
-    log('info', 'Terminating connection', { userId, reason });
+    //log('info', 'Terminating connection', { userId, reason });
 
     try {
         ws.terminate();
     } catch (error) {
-        log('error', 'Error terminating connection', { userId, error: error instanceof Error ? error.message : String(error) });
+        //log('error', 'Error terminating connection', { userId, error: error instanceof Error ? error.message : String(error) });
     }
 
     // Clean up user data
@@ -961,7 +960,7 @@ const pingInterval = setInterval(() => {
 
 // Graceful shutdown
 function gracefulShutdown() {
-    log('info', 'Starting graceful shutdown...');
+    // log('info', 'Starting graceful shutdown...');
 
     clearInterval(pingInterval);
 
@@ -977,13 +976,13 @@ function gracefulShutdown() {
 
     // Close WebSocket server
     wss.close(() => {
-        log('info', 'WebSocket server closed');
+        // log('info', 'WebSocket server closed');
         process.exit(0);
     });
 
     // Force exit after 10 seconds
     setTimeout(() => {
-        log('error', 'Forced shutdown after timeout');
+        //log('error', 'Forced shutdown after timeout');
         process.exit(1);
     }, 10000);
 }
@@ -1037,17 +1036,17 @@ wss.on('connection', async (ws, req) => {
         connectionTime: new Date(),
     });
 
-    log('info', 'User connected', { userId, totalConnections: users.length });
+    //log('info', 'User connected', { userId, totalConnections: users.length });
 
     // Message handling
     ws.on('message', async (data) => {
         try {
             // Check message size
-            const dataSize = Buffer.isBuffer(data) ? data.byteLength : (data instanceof ArrayBuffer ? data.byteLength : 0);
-            if (dataSize > MAX_MESSAGE_SIZE) {
-                ws.close(1009, "Message too large");
-                return;
-            }
+            // const dataSize = Buffer.isBuffer(data) ? data.byteLength : (data instanceof ArrayBuffer ? data.byteLength : 0);
+            // if (dataSize > MAX_MESSAGE_SIZE) {
+            //     ws.close(1009, "Message too large");
+            //     return;
+            // }
 
             // Rate limiting
             // if (!checkRateLimit(userId)) {
@@ -1062,14 +1061,14 @@ wss.on('connection', async (ws, req) => {
             const parsedData = JSON.parse(dat);
             const roomId = parsedData?.roomId;
             if (!roomId) {
-                log('warn', 'Message without roomId', { userId });
+                //log('warn', 'Message without roomId', { userId });
                 return;
             }
 
             // Validate roomId is a number
             const numericRoomId = parseInt(roomId);
             if (isNaN(numericRoomId)) {
-                log('warn', 'Invalid roomId format', { userId, roomId });
+                //log('warn', 'Invalid roomId format', { userId, roomId });
                 return;
             }
 
@@ -1083,7 +1082,7 @@ wss.on('connection', async (ws, req) => {
 
                 if (!currentUser.rooms.includes(roomId)) {
                     currentUser.rooms.push(roomId);
-                    log('info', 'User joined room', { userId, roomId });
+                   // log('info', 'User joined room', { userId, roomId });
                 }
             }
 
@@ -1094,7 +1093,7 @@ wss.on('connection', async (ws, req) => {
                 }
 
                 currentUser.rooms = currentUser.rooms.filter(x => x !== roomId);
-                log('info', 'User left room', { userId, roomId });
+                //log('info', 'User left room', { userId, roomId });
             }
 
             if (parsedData.type === "chat") {
@@ -1108,7 +1107,7 @@ wss.on('connection', async (ws, req) => {
                 const sanitizedMessage = sanitizeShape(message);
     
                 if (!sanitizedMessage) {
-                    log('warn', 'Invalid or malicious shape data', { userId, roomId });
+                    //log('warn', 'Invalid or malicious shape data', { userId, roomId });
                     ws.send(JSON.stringify({
                         type: "error",
                         message: "Invalid shape data"
@@ -1146,25 +1145,25 @@ wss.on('connection', async (ws, req) => {
                         try {
                             user.ws.send(broadcastMessage);
                         } catch (error) {
-                            log('error', 'Failed to send message to user', {
-                                targetUserId: user.userId,
-                                error: error instanceof Error ? error.message : String(error)
-                            });
+                            // log('error', 'Failed to send message to user', {
+                            //     targetUserId: user.userId,
+                            //     error: error instanceof Error ? error.message : String(error)
+                            // });
                         }
                     });
 
-                    log('info', 'Message broadcast', {
-                        userId,
-                        roomId,
-                        recipients: roomMembers.length,
-                        shapeType: sanitizedMessage.type
-                    });
+                    // log('info', 'Message broadcast', {
+                    //     userId,
+                    //     roomId,
+                    //     recipients: roomMembers.length,
+                    //     shapeType: sanitizedMessage.type
+                    // });
                 } catch (error) {
-                    log('error', 'Failed to save chat message', {
-                        userId,
-                        roomId,
-                        error: error instanceof Error ? error.message : String(error)
-                    });
+                    // log('error', 'Failed to save chat message', {
+                    //     userId,
+                    //     roomId,
+                    //     error: error instanceof Error ? error.message : String(error)
+                    // });
 
                     ws.send(JSON.stringify({
                         type: "error",
@@ -1173,10 +1172,10 @@ wss.on('connection', async (ws, req) => {
                 }
             }
         } catch (error) {
-            log('error', 'Error processing message', {
-                userId,
-                error: error instanceof Error ? error.message : String(error)
-            });
+            // log('error', 'Error processing message', {
+            //     userId,
+            //     error: error instanceof Error ? error.message : String(error)
+            // });
 
             ws.send(JSON.stringify({
                 type: "error",
@@ -1186,7 +1185,7 @@ wss.on('connection', async (ws, req) => {
     });
 
     ws.on('close', () => {
-        log('info', 'User disconnected', { userId });
+        // log('info', 'User disconnected', { userId });
         const user = users.find(x => x.ws === ws);
         if (user && user.pingTimeout) {
             clearTimeout(user.pingTimeout);
@@ -1196,17 +1195,17 @@ wss.on('connection', async (ws, req) => {
     });
 
     ws.on('error', (error) => {
-        log('error', 'WebSocket error', { userId, error: error.message });
+        // log('error', 'WebSocket error', { userId, error: error.message });
         terminateConnection(ws, userId, 'websocket error');
     });
 });
 
 wss.on('error', (error) => {
-    log('error', 'WebSocket server error', { error: error.message });
+    // log('error', 'WebSocket server error', { error: error.message });
 });
 
-log('info', 'WebSocket server started', {
-    port: process.env.WEBSOCKET_PORT || 8080,
-    // maxConnections: MAX_CONNECTIONS,
-    environment: process.env.NODE_ENV || 'development'
-});
+// log('info', 'WebSocket server started', {
+//     port: process.env.WEBSOCKET_PORT || 8080,
+//     // maxConnections: MAX_CONNECTIONS,
+//     environment: process.env.NODE_ENV || 'development'
+// });
