@@ -1,27 +1,27 @@
 import { type JSX } from "react";
 
 export function Card({
-  className,
   title,
   children,
-  href,
+  img,
+  alt,
 }: {
-  className?: string;
   title: string;
   children: React.ReactNode;
-  href: string;
+  img:string;
+  alt:string;
 }): JSX.Element {
   return (
-    <a
-      className={className}
-      href={`${href}?utm_source=create-turbo&utm_medium=basic&utm_campaign=create-turbo"`}
-      rel="noopener noreferrer"
-      target="_blank"
-    >
-      <h2>
-        {title} <span>-&gt;</span>
-      </h2>
-      <p>{children}</p>
-    </a>
+    <div className="flex flex-col border border-gray-400 rounded-2xl p-5 gap-1">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-8 h-8 flex items-center justify-center">
+          <img src={`/${img}`} alt={alt} width={28} height={28} draggable="false" />
+        </div>
+        <h2 className="text-xl font-semibold">{title}</h2>
+      </div>
+      <p className="text-left">
+        {children}
+      </p>
+    </div>
   );
 }
