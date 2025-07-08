@@ -2019,6 +2019,7 @@ export class Game {
         this.canvas.addEventListener('mouseup', this.mouseUpHandler);
         this.canvas.addEventListener('mousemove', this.mouseMoveHandler);
         this.canvas.addEventListener('dblclick', this.doubleClickHandler);
+        window.addEventListener('keydown', this.keyDownHandler);
         // Add mouse leave handler to clean up state
         this.canvas.addEventListener('mouseleave', this.mouseLeaveHandler);
     }
@@ -2047,7 +2048,8 @@ export class Game {
         this.canvas.removeEventListener('mousemove', this.mouseMoveHandler);
         this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandler);
         this.canvas.removeEventListener('wheel', this.wheelHandler);
-        this.canvas.addEventListener('dblclick', this.doubleClickHandler);
+        this.canvas.removeEventListener('dblclick', this.doubleClickHandler);
+        window.removeEventListener('keydown', this.keyDownHandler);
         window.removeEventListener('resize', this.debouncedUpdateCanvasRect);
         window.removeEventListener('scroll', this.debouncedUpdateCanvasRect);
 
@@ -2454,6 +2456,45 @@ export class Game {
                 this.scale,
                 this, "#ffffff", 2, 20
             );
+        }
+    }
+
+    keyDownHandler = (e: KeyboardEvent) => {
+        if (e.key === '0') {
+            this.setTool("grab");
+            if (this.onToolChange) {
+                this.onToolChange("grab");
+            }
+        } else if (e.key === '1') {
+            this.setTool("cursor");
+            if (this.onToolChange) {
+                this.onToolChange("cursor");
+            }
+        } else if (e.key === '2') {
+            this.setTool("pencil");
+            if (this.onToolChange) {
+                this.onToolChange("pencil");
+            }
+        } else if (e.key === '3') {
+            this.setTool("rect");
+            if (this.onToolChange) {
+                this.onToolChange("rect");
+            }
+        } else if (e.key === '4') {
+            this.setTool("elip");
+            if (this.onToolChange) {
+                this.onToolChange("elip");
+            }
+        } else if (e.key === '5') {
+            this.setTool("line");
+            if (this.onToolChange) {
+                this.onToolChange("line");
+            }
+        } else if (e.key === '6') {
+            this.setTool("text");
+            if (this.onToolChange) {
+                this.onToolChange("text");
+            }
         }
     }
 }
