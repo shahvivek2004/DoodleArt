@@ -2018,6 +2018,7 @@ export class Game {
         this.canvas.addEventListener('mousedown', this.mouseDownHandler);
         this.canvas.addEventListener('mouseup', this.mouseUpHandler);
         this.canvas.addEventListener('mousemove', this.mouseMoveHandler);
+        this.canvas.addEventListener('dblclick', this.doubleClickHandler);
         // Add mouse leave handler to clean up state
         this.canvas.addEventListener('mouseleave', this.mouseLeaveHandler);
     }
@@ -2046,6 +2047,7 @@ export class Game {
         this.canvas.removeEventListener('mousemove', this.mouseMoveHandler);
         this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandler);
         this.canvas.removeEventListener('wheel', this.wheelHandler);
+        this.canvas.addEventListener('dblclick', this.doubleClickHandler);
         window.removeEventListener('resize', this.debouncedUpdateCanvasRect);
         window.removeEventListener('scroll', this.debouncedUpdateCanvasRect);
 
@@ -2438,6 +2440,22 @@ export class Game {
             this.onPanChange(false);
         }
     }
+
+    doubleClickHandler = (e: MouseEvent) => {
+        if (this.selectedTool === "cursor") {
+            const worldCoords = this.screenToWorld(e.clientX, e.clientY);
+            this.activeTextBox = new TextBox(
+                e.clientX,
+                e.clientY,
+                worldCoords.x,
+                worldCoords.y,
+                "",
+                this.context,
+                this.scale,
+                this, "#ffffff", 2, 20
+            );
+        }
+    }
 }
 
 
@@ -2538,39 +2556,39 @@ export class Game {
 //     this.render();
 // }
 
-    // // Zoom control methods
-    // zoomIn(factor: number = 1.2, centerX?: number, centerY?: number) {
-    //     const newScale = this.scale * factor;
-    //     if (newScale <= this.maxScale) {
-    //         this.zoomToPoint(newScale, centerX, centerY);
-    //     }
-    // }
+// // Zoom control methods
+// zoomIn(factor: number = 1.2, centerX?: number, centerY?: number) {
+//     const newScale = this.scale * factor;
+//     if (newScale <= this.maxScale) {
+//         this.zoomToPoint(newScale, centerX, centerY);
+//     }
+// }
 
-    // zoomOut(factor: number = 1.2, centerX?: number, centerY?: number) {
-    //     const newScale = this.scale / factor;
-    //     if (newScale >= this.minScale) {
-    //         this.zoomToPoint(newScale, centerX, centerY);
-    //     }
-    // }
+// zoomOut(factor: number = 1.2, centerX?: number, centerY?: number) {
+//     const newScale = this.scale / factor;
+//     if (newScale >= this.minScale) {
+//         this.zoomToPoint(newScale, centerX, centerY);
+//     }
+// }
 
-    // // Helper method to zoom to a specific point
-    // private zoomToPoint(newScale: number, centerX?: number, centerY?: number) {
-    //     // Default to canvas center if no point specified
-    //     const zoomCenterX = centerX ?? this.canvas.width / 2;
-    //     const zoomCenterY = centerY ?? this.canvas.height / 2;
+// // Helper method to zoom to a specific point
+// private zoomToPoint(newScale: number, centerX?: number, centerY?: number) {
+//     // Default to canvas center if no point specified
+//     const zoomCenterX = centerX ?? this.canvas.width / 2;
+//     const zoomCenterY = centerY ?? this.canvas.height / 2;
 
-    //     // Calculate world position before zoom
-    //     const worldPosBefore = {
-    //         x: (zoomCenterX - this.panX) / this.scale,
-    //         y: (zoomCenterY - this.panY) / this.scale
-    //     };
+//     // Calculate world position before zoom
+//     const worldPosBefore = {
+//         x: (zoomCenterX - this.panX) / this.scale,
+//         y: (zoomCenterY - this.panY) / this.scale
+//     };
 
-    //     // Apply new scale
-    //     this.scale = newScale;
+//     // Apply new scale
+//     this.scale = newScale;
 
-    //     // Adjust pan to keep the zoom center point fixed
-    //     this.panX = zoomCenterX - worldPosBefore.x * this.scale;
-    //     this.panY = zoomCenterY - worldPosBefore.y * this.scale;
+//     // Adjust pan to keep the zoom center point fixed
+//     this.panX = zoomCenterX - worldPosBefore.x * this.scale;
+//     this.panY = zoomCenterY - worldPosBefore.y * this.scale;
 
-    //     this.render();
-    // }
+//     this.render();
+// }

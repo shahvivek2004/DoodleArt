@@ -19,7 +19,7 @@ export class TextBox {
 
         this.textbox = document.createElement('input');
         this.textbox.style.backgroundColor = "transparent";
-        this.textbox.style.width = `${(150 + fontSize) * scale}px`;
+        this.textbox.style.width = `${(200 + fontSize) * scale}px`;
         this.textbox.style.height = `${(20 + fontSize) * scale}px`;
         this.textbox.style.position = "absolute";
         this.textbox.style.top = `${parY}px`;
@@ -119,7 +119,7 @@ export class TextBox {
                 this.context.font = `${fontSize}px sans-serif`;
                 this.context.fillStyle = color;
                 this.context.lineWidth = strokeWidth;
-                this.context.fillText(trimmedValue, x, y + fontSize);
+                this.context.fillText(trimmedValue, x, y + fontSize + 8);
                 this.context.restore();
 
                 const textShape: Shape = {
