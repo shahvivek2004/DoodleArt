@@ -7,6 +7,8 @@ export class TextBox {
     private y: number;
     private app: Game; // Reference to your main application
     isWriting: boolean;
+    private isFinalized: boolean = false;
+
 
     constructor(parX: number, parY: number, x: number, y: number, content: string, context: CanvasRenderingContext2D, scale: number, app: Game, color: string, strokeWidth: number, fontSize: number) {
         this.context = context;
@@ -17,7 +19,7 @@ export class TextBox {
 
         this.textbox = document.createElement('input');
         this.textbox.style.backgroundColor = "transparent";
-        this.textbox.style.width = `${(100 + fontSize) * scale}px`;
+        this.textbox.style.width = `${(150 + fontSize) * scale}px`;
         this.textbox.style.height = `${(20 + fontSize) * scale}px`;
         this.textbox.style.position = "absolute";
         this.textbox.style.top = `${parY}px`;
@@ -31,26 +33,100 @@ export class TextBox {
         document.body.appendChild(this.textbox);
         this.textbox.focus();
 
+        // this.textbox.addEventListener('keydown', (e: KeyboardEvent) => {
+        //     if (e.key === "Enter") {
+        //         if (this.textbox.value.trim().length > 0) {
+
+        //             this.context.save();
+        //             this.context.font = `${fontSize}px sans-serif`;
+        //             this.context.fillStyle = color;
+        //             this.context.lineWidth = strokeWidth;
+        //             this.context.fillText(this.textbox.value, x, y + fontSize);
+        //             this.context.restore();
+
+        //             const textShape: Shape = {
+        //                 type: "text",
+        //                 x: x,
+        //                 y: y,
+        //                 content: this.textbox.value,
+        //             };
+
+        //             this.app.existingShapes.push(textShape);
+
+        //             this.app.socket.send(JSON.stringify({
+        //                 type: "chat",
+        //                 message: JSON.stringify(textShape),
+        //                 roomId: this.app.roomId
+        //             }));
+        //         }
+
+        //         document.body.removeChild(this.textbox);
+        //         this.isWriting = false;
+        //         this.app.activeTextBox = undefined;
+        //         this.app.setTool("cursor");
+        //         if (this.app.onToolChange) {
+        //             this.app.onToolChange("cursor");
+        //         }
+        //     }
+        // })
 
 
-        this.textbox.addEventListener('blur', () => {
-            if (this.textbox.value.trim().length > 0) {
+        // this.textbox.addEventListener('blur', () => {
+        //     if (this.textbox.value.trim().length > 0) {
 
+        //         this.context.save();
+        //         this.context.font = `${fontSize}px sans-serif`;
+        //         this.context.fillStyle = color;
+        //         this.context.lineWidth = strokeWidth;
+        //         this.context.fillText(this.textbox.value, x, y + fontSize);
+        //         this.context.restore();
+
+        //         const textShape: Shape = {
+        //             type: "text",
+        //             x: x,
+        //             y: y,
+        //             content: this.textbox.value,
+        //         };
+
+        //         this.app.existingShapes.push(textShape);
+
+        //         this.app.socket.send(JSON.stringify({
+        //             type: "chat",
+        //             message: JSON.stringify(textShape),
+        //             roomId: this.app.roomId
+        //         }));
+        //     }
+
+        //     document.body.removeChild(this.textbox);
+        //     this.isWriting = false;
+        //     this.app.activeTextBox = undefined;
+        //     this.app.setTool("cursor");
+        //     if (this.app.onToolChange) {
+        //         this.app.onToolChange("cursor");
+        //     }
+
+        // });
+
+
+        const finalize = () => {
+            if (this.isFinalized) return;
+            this.isFinalized = true;
+
+            const trimmedValue = this.textbox.value.trim();
+
+            if (trimmedValue.length > 0) {
                 this.context.save();
                 this.context.font = `${fontSize}px sans-serif`;
                 this.context.fillStyle = color;
                 this.context.lineWidth = strokeWidth;
-                this.context.fillText(this.textbox.value, x, y + fontSize);
+                this.context.fillText(trimmedValue, x, y + fontSize);
                 this.context.restore();
 
                 const textShape: Shape = {
                     type: "text",
                     x: x,
                     y: y,
-                    content: this.textbox.value,
-                    color: color,
-                    strokeWidth: strokeWidth,
-                    fontSize: fontSize
+                    content: trimmedValue,
                 };
 
                 this.app.existingShapes.push(textShape);
@@ -62,14 +138,25 @@ export class TextBox {
                 }));
             }
 
-            document.body.removeChild(this.textbox);
+            if (this.textbox.parentElement) {
+                document.body.removeChild(this.textbox);
+            }
             this.isWriting = false;
             this.app.activeTextBox = undefined;
             this.app.setTool("cursor");
             if (this.app.onToolChange) {
                 this.app.onToolChange("cursor");
             }
+        };
 
+        this.textbox.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+                finalize();
+            }
+        });
+
+        this.textbox.addEventListener('blur', () => {
+            finalize();
         });
     }
 }
