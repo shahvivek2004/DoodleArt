@@ -2160,6 +2160,7 @@ export class Game {
 
     render() {
         // Save current transform state
+        // const ti = Date.now();
         this.context.save();
 
         // Reset transform to identity
@@ -2179,14 +2180,23 @@ export class Game {
         this.context.lineWidth = 2; // Scale-independent line width
 
         // Draw all existing shapes
+        // const t1= Date.now();
+
         this.existingShapes.forEach((shape) => {
-            if (this.isShapeVisible(shape)) { 
+            if (this.isShapeVisible(shape)) {
                 this.drawShape(shape);
             }
         });
 
+        // const t2=Date.now();
+        // console.log(`Delay for drawing shapes ${(t2-t1)} ms`);
+
         // Restore transform state
         this.context.restore();
+
+        // const tf = Date.now();
+        // console.log(`Delay for whole render ${(tf-ti)} ms`);
+
     }
 
     drawShape(shape: Shape) {
@@ -2499,20 +2509,15 @@ export class Game {
     }
 
     keyDownHandler = (e: KeyboardEvent) => {
-        if (e.key === '0') {
+        if (e.key === '1') {
             this.setTool("grab");
             if (this.onToolChange) {
                 this.onToolChange("grab");
             }
-        } else if (e.key === '1') {
+        } else if (e.key === '2') {
             this.setTool("cursor");
             if (this.onToolChange) {
                 this.onToolChange("cursor");
-            }
-        } else if (e.key === '2') {
-            this.setTool("pencil");
-            if (this.onToolChange) {
-                this.onToolChange("pencil");
             }
         } else if (e.key === '3') {
             this.setTool("rect");
@@ -2530,6 +2535,11 @@ export class Game {
                 this.onToolChange("line");
             }
         } else if (e.key === '6') {
+            this.setTool("pencil");
+            if (this.onToolChange) {
+                this.onToolChange("pencil");
+            }
+        } else if (e.key === '7') {
             this.setTool("text");
             if (this.onToolChange) {
                 this.onToolChange("text");
