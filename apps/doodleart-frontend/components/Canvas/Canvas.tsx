@@ -190,14 +190,14 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
 
 function ToolBar({ selectedTool, setSelectedTool }: { selectedTool: Tool, setSelectedTool: (s: Tool) => void }) {
     return (
-        <div className="flex flex-row bg-[#232329] h-15 w-md rounded-xl mt-4 gap-3 items-center text-center p-4">
-            <IconButton onClick={() => setSelectedTool("grab")} activated={selectedTool === "grab"} icon={<Hand />} label="Grab Tool" keyVal={0}/>
-            <IconButton onClick={() => setSelectedTool("cursor")} activated={selectedTool === "cursor"} icon={<MousePointer />} label="Cursor Tool" keyVal={1} />
-            <IconButton onClick={() => setSelectedTool("pencil")} activated={selectedTool === "pencil"} icon={<Pencil />} label="Pencil Tool" keyVal={2}/>
-            <IconButton onClick={() => setSelectedTool("rect")} activated={selectedTool === "rect"} icon={<RectangleHorizontalIcon />} label="Rectangle Tool" keyVal={3} />
-            <IconButton onClick={() => setSelectedTool("elip")} activated={selectedTool === "elip"} icon={<Circle />} label="Ellipse Tool" keyVal={4}/>
-            <IconButton onClick={() => setSelectedTool("line")} activated={selectedTool === "line"} icon={<Slash />} label="Line Tool" keyVal={5}/>
-            <IconButton onClick={() => setSelectedTool("text")} activated={selectedTool === "text"} icon={<LetterText />} label="Text Tool" keyVal={6} />
+        <div className="flex flex-row bg-[#232329] h-16 w-md rounded-xl mt-4 gap-3 items-center text-center p-3 justify-center">
+            <IconButton onClick={() => setSelectedTool("grab")} activated={selectedTool === "grab"} icon={<Hand width={18} height={18}/>} label="Grab Tool" keyVal={0}/>
+            <IconButton onClick={() => setSelectedTool("cursor")} activated={selectedTool === "cursor"} icon={<MousePointer width={18} height={18}/>} label="Cursor Tool" keyVal={1} />
+            <IconButton onClick={() => setSelectedTool("pencil")} activated={selectedTool === "pencil"} icon={<Pencil width={18} height={18}/>} label="Pencil Tool" keyVal={2}/>
+            <IconButton onClick={() => setSelectedTool("rect")} activated={selectedTool === "rect"} icon={<RectangleHorizontalIcon width={18} height={18}/>} label="Rectangle Tool" keyVal={3} />
+            <IconButton onClick={() => setSelectedTool("elip")} activated={selectedTool === "elip"} icon={<Circle width={18} height={18}/>} label="Ellipse Tool" keyVal={4}/>
+            <IconButton onClick={() => setSelectedTool("line")} activated={selectedTool === "line"} icon={<Slash width={18} height={18}/>} label="Line Tool" keyVal={5}/>
+            <IconButton onClick={() => setSelectedTool("text")} activated={selectedTool === "text"} icon={<LetterText width={18} height={18}/>} label="Text Tool" keyVal={6} />
         </div>
     );
 }
