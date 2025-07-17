@@ -633,56 +633,56 @@ interface User {
 }
 
 type Shape = {
-   "type": "rect";
-   "x": number;
-   "y": number;
-   "width": number;
-   "height": number;
-   "color": string;
-   "strokeWidth": number;
-   "bgColor": string;
-   "lineDashX": number;
-   "lineDashY": number;
+    "type": "rect";
+    "x": number;
+    "y": number;
+    "width": number;
+    "height": number;
+    "color": string;
+    "strokeWidth": number;
+    "bgColor": string;
+    "lineDashX": number;
+    "lineDashY": number;
 } | {
-   "type": "elip";
-   "centerX": number;
-   "centerY": number;
-   "radiusX": number;
-   "radiusY": number;
-   "color": string;
-   "strokeWidth": number;
-   "bgColor": string;
-   "lineDashX": number;
-   "lineDashY": number;
+    "type": "elip";
+    "centerX": number;
+    "centerY": number;
+    "radiusX": number;
+    "radiusY": number;
+    "color": string;
+    "strokeWidth": number;
+    "bgColor": string;
+    "lineDashX": number;
+    "lineDashY": number;
 } | {
-   "type": "line";
-   "startX": number;
-   "startY": number;
-   "endX": number;
-   "endY": number;
-   "color": string;
-   "strokeWidth": number;
-   "lineDashX": number;
-   "lineDashY": number;
+    "type": "line";
+    "startX": number;
+    "startY": number;
+    "endX": number;
+    "endY": number;
+    "color": string;
+    "strokeWidth": number;
+    "lineDashX": number;
+    "lineDashY": number;
 } | {
-   "type": "pencil";
-   "pencilCoords": Array<{ "x": number, "y": number }>;
-   "color": string;
-   "strokeWidth": number;
-   "lineDashX": number;
-   "lineDashY": number;
+    "type": "pencil";
+    "pencilCoords": Array<{ "x": number, "y": number }>;
+    "color": string;
+    "strokeWidth": number;
+    "lineDashX": number;
+    "lineDashY": number;
 } | {
-   "type": "text";
-   "x": number;
-   "y": number;
-   "content": string;
-   "color": string;
-   "strokeWidth": number;
-   "fontSize": number;
+    "type": "text";
+    "x": number;
+    "y": number;
+    "content": string;
+    "color": string;
+    "strokeWidth": number;
+    "fontSize": number;
 } | {
-   "type": "cursor";
+    "type": "cursor";
 } | {
-   "type": "grab";
+    "type": "grab";
 };
 
 env.config();
@@ -690,6 +690,7 @@ env.config();
 let users: User[] = [];
 // const MAX_CONNECTIONS = parseInt(process.env.MAX_CONNECTIONS || "1000");
 // const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || "10000");
+
 const PING_INTERVAL = parseInt(process.env.PING_INTERVAL || "15000");
 const PING_TIMEOUT = parseInt(process.env.PING_TIMEOUT || "30000");
 
@@ -769,18 +770,18 @@ function sanitizeNumber(num: number, min = -Infinity, max = Infinity) {
     return Math.max(min, Math.min(max, num));
 }
 
-function sanitizeColor(color: string) {
-    if (typeof color !== 'string') return '#000000';
+// function sanitizeColor(color: string) {
+//     if (typeof color !== 'string') return '#000000';
 
-    // Allow hex colors, rgb, rgba, and named colors
-    const validColorPattern = /^(#[0-9a-fA-F]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|[a-zA-Z]+)$/;
+//     // Allow hex colors, rgb, rgba, and named colors
+//     const validColorPattern = /^(#[0-9a-fA-F]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|[a-zA-Z]+)$/;
 
-    if (!validColorPattern.test(color)) {
-        return '#000000';
-    }
+//     if (!validColorPattern.test(color)) {
+//         return '#000000';
+//     }
 
-    return color;
-}
+//     return color;
+// }
 
 function sanitizeShape(shape: Shape) {
     if (!shape) {
@@ -797,43 +798,43 @@ function sanitizeShape(shape: Shape) {
     switch (shape.type) {
         case "rect":
             return {
-                type: 'rect',
+                type: "rect",
                 x: sanitizeNumber(shape.x, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 y: sanitizeNumber(shape.y, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 width: sanitizeNumber(shape.width, baseConstraints.size.min, baseConstraints.size.max),
                 height: sanitizeNumber(shape.height, baseConstraints.size.min, baseConstraints.size.max),
-                color: sanitizeColor(shape.color),
-                strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
-                bgColor: sanitizeColor(shape.bgColor),
-                lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
-                lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
+                // color: sanitizeColor(shape.color),
+                // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
+                // bgColor: sanitizeColor(shape.bgColor),
+                // lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
+                // lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
             };
 
         case "elip":
             return {
-                type: 'elip',
+                type: "elip",
                 centerX: sanitizeNumber(shape.centerX, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 centerY: sanitizeNumber(shape.centerY, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 radiusX: sanitizeNumber(shape.radiusX, baseConstraints.size.min, baseConstraints.size.max),
                 radiusY: sanitizeNumber(shape.radiusY, baseConstraints.size.min, baseConstraints.size.max),
-                color: sanitizeColor(shape.color),
-                strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
-                bgColor: sanitizeColor(shape.bgColor),
-                lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
-                lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
+                // color: sanitizeColor(shape.color),
+                // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
+                // bgColor: sanitizeColor(shape.bgColor),
+                // lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
+                // lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
             };
 
         case "line":
             return {
-                type: 'line',
+                type: "line",
                 startX: sanitizeNumber(shape.startX, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 startY: sanitizeNumber(shape.startY, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 endX: sanitizeNumber(shape.endX, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 endY: sanitizeNumber(shape.endY, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                color: sanitizeColor(shape.color),
-                strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
-                lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
-                lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
+                // color: sanitizeColor(shape.color),
+                // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
+                // lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
+                // lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
             };
 
         case "pencil":
@@ -859,23 +860,23 @@ function sanitizeShape(shape: Shape) {
             }
 
             return {
-                type: 'pencil',
+                type: "pencil",
                 pencilCoords: sanitizedCoords,
-                color: sanitizeColor(shape.color),
-                strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
-                lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
-                lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
+                // color: sanitizeColor(shape.color),
+                // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
+                // lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
+                // lineDashY: sanitizeNumber(shape.lineDashY, 0, 100)
             };
 
         case "text":
             return {
-                type: 'text',
+                type: "text",
                 x: sanitizeNumber(shape.x, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 y: sanitizeNumber(shape.y, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
                 content: sanitizeString(shape.content), // Limit text content
-                color: sanitizeColor(shape.color),
-                strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
-                fontSize: sanitizeNumber(shape.fontSize, baseConstraints.fontSize.min, baseConstraints.fontSize.max)
+                // color: sanitizeColor(shape.color),
+                // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
+                // fontSize: sanitizeNumber(shape.fontSize, baseConstraints.fontSize.min, baseConstraints.fontSize.max)
             };
 
         case "cursor":
@@ -1020,7 +1021,7 @@ wss.on('connection', async (ws, req) => {
     //     terminateConnection(existingUser.ws, userId, 'duplicate connection');
     // }
 
-    
+
     heartbeat(userId);
 
     // Setup connection monitoring
@@ -1082,7 +1083,7 @@ wss.on('connection', async (ws, req) => {
 
                 if (!currentUser.rooms.includes(roomId)) {
                     currentUser.rooms.push(roomId);
-                   // log('info', 'User joined room', { userId, roomId });
+                    // log('info', 'User joined room', { userId, roomId });
                 }
             }
 
@@ -1105,7 +1106,7 @@ wss.on('connection', async (ws, req) => {
                 // Sanitize the Shape object
 
                 const sanitizedMessage = sanitizeShape(message);
-    
+
                 if (!sanitizedMessage) {
                     //log('warn', 'Invalid or malicious shape data', { userId, roomId });
                     ws.send(JSON.stringify({
@@ -1126,10 +1127,16 @@ wss.on('connection', async (ws, req) => {
                         }
                     });
 
+                    ws.send(JSON.stringify({
+                        type: "self",
+                        chatId: chatRecord.id,
+                        message:finalMessage
+                    }));
+
                     // Broadcast to room members
                     const roomMembers = users.filter(user =>
                         user.rooms.includes(roomId) &&
-                        user.ws.readyState === WebSocket.OPEN
+                        user.ws.readyState === WebSocket.OPEN && user.userId !== userId
                     );
 
                     const broadcastMessage = JSON.stringify({
@@ -1165,6 +1172,68 @@ wss.on('connection', async (ws, req) => {
                     //     error: error instanceof Error ? error.message : String(error)
                     // });
 
+                    ws.send(JSON.stringify({
+                        type: "error",
+                        message: "Failed to save your message"
+                    }));
+                }
+            }
+
+            if (parsedData.type === "chat-update") {
+                //console.log(parsedData);
+                const message = JSON.parse(parsedData?.message);
+                if (!message) {
+                    return;
+                }
+
+                // Sanitize the Shape object
+
+                const sanitizedMessage = sanitizeShape(message);
+
+                if (!sanitizedMessage) {
+                    //log('warn', 'Invalid or malicious shape data', { userId, roomId });
+                    ws.send(JSON.stringify({
+                        type: "error",
+                        message: "Invalid shape data"
+                    }));
+                    return;
+                }
+
+                const finalMessage = JSON.stringify(sanitizedMessage);
+
+                try {
+                    //console.log(`data update at row : ${parsedData.chatId}`);
+                    await db.chat.update({
+                        data: {
+                            message: finalMessage
+                        },
+                        where: {
+                            id: parsedData.chatId
+                        }
+                    });
+
+                    // Broadcast to room members
+                    const roomMembers = users.filter(user =>
+                        user.rooms.includes(roomId) &&
+                        user.ws.readyState === WebSocket.OPEN && user.userId !== userId
+                    );
+
+                    const broadcastMessage = JSON.stringify({
+                        type: "chat-update",
+                        message: finalMessage,
+                        chatId: parsedData.chatId,
+                        userId: userId
+                    });
+
+                    roomMembers.forEach(user => {
+                        try {
+                            user.ws.send(broadcastMessage);
+                        } catch (error) {
+                            console.log("error: " + error);
+                        }
+                    });
+
+                } catch (error) {
                     ws.send(JSON.stringify({
                         type: "error",
                         message: "Failed to save your message"

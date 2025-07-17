@@ -1837,30 +1837,37 @@ export type Shape = {
     y: number;
     width: number;
     height: number;
+    id?: number;
 } | {
     type: "elip";
     centerX: number;
     centerY: number;
     radiusX: number;
     radiusY: number;
+    id?: number;
 } | {
     type: "line";
     startX: number;
     startY: number;
     endX: number;
     endY: number;
+    id?: number;
 } | {
     type: "pencil";
     pencilCoords: Array<{ x: number, y: number }>;
+    id?: number;
 } | {
     type: "text";
     x: number;
     y: number;
     content: string;
+    id?: number;
 } | {
     type: "cursor";
+    id?: number;
 } | {
     type: "grab";
+    id?: number;
 };
 
 export class Game {
@@ -1886,14 +1893,20 @@ export class Game {
     private canvasRect: DOMRect;
     onToolChange: ((tool: Tool) => void) | null = null;
     onPanChange: ((status: boolean) => void) | null = null;
+    onSelectChange: ((status: boolean) => void) | null = null;
     private lastScale: number;
     private lastSavedPan: { x: number, y: number } = { x: 0, y: 0 };
     private savePanTimeout: number | undefined;
-    private isPanning: boolean;
+
     private saveScaleTimeout: number | undefined;
     // Add debouncing for canvas rect updates
     private resizeTimeout: number | null = null;
     private rectUpdateTimeout: number | null = null;
+    private isSelecting: boolean;
+    private selectedShape: Shape | null;
+    private lastMouseShapeX = 0;
+    private lastMouseShapeY = 0;
+    private lastShape: Shape | null;
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -1916,8 +1929,9 @@ export class Game {
         this.lastScale = this.scale = Number(localStorage.getItem("scale")) || 1;
         this.lastSavedPan.x = this.panX = Number(localStorage.getItem("px")) || 0;
         this.lastSavedPan.y = this.panY = Number(localStorage.getItem("py")) || 0;
-        this.isPanning = false;
-
+        this.isSelecting = false;
+        this.selectedShape = null;
+        this.lastShape = null;
         this.init();
         this.initHandlers();
         this.initMouseHandlers();
@@ -1992,6 +2006,7 @@ export class Game {
     async init() {
         try {
             this.existingShapes = await getExistingShapes(this.roomId);
+            //console.log(this.existingShapes);
         } catch (error) {
             console.error("Failed to load existing shapes:", error);
             this.existingShapes = [];
@@ -2002,13 +2017,56 @@ export class Game {
     initHandlers() {
         this.socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
-            if (message.type === "chat") {
+            if (message.type === "self") {
+                // console.log("self");
+                const chatid = message.chatId;
                 this.panX = Number(localStorage.getItem("px")) || 0;
                 this.panY = Number(localStorage.getItem("py")) || 0;
                 this.scale = Number(localStorage.getItem("scale")) || 1;
+                const parsedShape: Shape = JSON.parse(message.message);
+                const newShape: Shape = { ...parsedShape, id: chatid };
+                this.existingShapes.push(newShape);
+                //console.log(this.existingShapes);
+                this.render();
 
-                const parsedShape = JSON.parse(message.message);
-                this.existingShapes.push(parsedShape);
+            } else if (message.type === "chat") {
+                // console.log("chat");
+                const chatid = message.messageId;
+                this.panX = Number(localStorage.getItem("px")) || 0;
+                this.panY = Number(localStorage.getItem("py")) || 0;
+                this.scale = Number(localStorage.getItem("scale")) || 1;
+                //alert(chatid);
+                const parsedShape: Shape = JSON.parse(message.message);
+                const newShape: Shape = { ...parsedShape, id: chatid };
+
+                this.existingShapes.push(newShape);
+                //console.log(this.existingShapes);
+                this.render();
+            } else if (message.type === "chat-update") {
+                // console.log("chat-update");
+                // console.log(message);
+                // console.log("before filter");
+                // console.log(this.existingShapes);
+                this.panX = Number(localStorage.getItem("px")) || 0;
+                this.panY = Number(localStorage.getItem("py")) || 0;
+                this.scale = Number(localStorage.getItem("scale")) || 1;
+                const newShape: Shape = JSON.parse(message.message);
+                const chatId = message.chatId;
+                const finalShape = { ...newShape, id: chatId };
+
+                // console.log(prevShape);
+                // console.log(newShape);
+                // console.log("Check if prevshape present or not");
+                // console.log(chatId);
+                // console.log(this.existingShapes.find((shape) => shape.id === chatId));
+
+                this.existingShapes = this.existingShapes.filter((shape) => shape.id !== chatId);
+
+                // console.log("after filter");
+                // console.log(this.existingShapes);
+                this.existingShapes.push(finalShape);
+                // console.log("after push");
+                // console.log(this.existingShapes);
                 this.render();
             }
         }
@@ -2016,12 +2074,12 @@ export class Game {
 
     initMouseHandlers() {
         this.canvas.addEventListener('mousedown', this.mouseDownHandler);
-        this.canvas.addEventListener('mouseup', this.mouseUpHandler);
-        this.canvas.addEventListener('mousemove', this.mouseMoveHandler);
+        window.addEventListener('mouseup', this.mouseUpHandler);
+        window.addEventListener('mousemove', this.mouseMoveHandler);
         this.canvas.addEventListener('dblclick', this.doubleClickHandler);
         window.addEventListener('keydown', this.keyDownHandler);
         // Add mouse leave handler to clean up state
-        this.canvas.addEventListener('mouseleave', this.mouseLeaveHandler);
+        // this.canvas.addEventListener('mouseleave', this.mouseLeaveHandler);
     }
 
     initZoomHandlers() {
@@ -2029,24 +2087,24 @@ export class Game {
     }
 
     // New mouse leave handler
-    mouseLeaveHandler = (e: MouseEvent) => {
-        // Clean up any ongoing operations when mouse leaves canvas
-        if (this.selectedTool === "pencil" && this.isDrawing) {
-            // Finish the pencil stroke
-            this.mouseUpHandler(e);
-        }
-        // Reset click state but don't interfere with grab operations
-        if (this.selectedTool !== "grab") {
-            this.clicked = false;
-            this.isDrawing = false;
-        }
-    }
+    // mouseLeaveHandler = (e: MouseEvent) => {
+    //     // Clean up any ongoing operations when mouse leaves canvas
+    //     if (this.selectedTool === "pencil" && this.isDrawing) {
+    //         // Finish the pencil stroke
+    //         this.mouseUpHandler(e);
+    //     }
+    //     // Reset click state but don't interfere with grab operations
+    //     if (this.selectedTool !== "grab") {
+    //         this.clicked = false;
+    //         this.isDrawing = false;
+    //     }
+    // }
 
     destroyMouseHandlers() {
         this.canvas.removeEventListener('mousedown', this.mouseDownHandler);
-        this.canvas.removeEventListener('mouseup', this.mouseUpHandler);
-        this.canvas.removeEventListener('mousemove', this.mouseMoveHandler);
-        this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandler);
+        window.removeEventListener('mouseup', this.mouseUpHandler);
+        window.removeEventListener('mousemove', this.mouseMoveHandler);
+        //this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandler);
         this.canvas.removeEventListener('wheel', this.wheelHandler);
         this.canvas.removeEventListener('dblclick', this.doubleClickHandler);
         window.removeEventListener('keydown', this.keyDownHandler);
@@ -2068,6 +2126,10 @@ export class Game {
 
     registerPanningCallback(callback: (status: boolean) => void) {
         this.onPanChange = callback;
+    }
+
+    registerSelectingCallback(callback: (status: boolean) => void) {
+        this.onSelectChange = callback;
     }
 
     // Zoom functionality
@@ -2177,7 +2239,7 @@ export class Game {
 
         this.context.strokeStyle = "rgba(255, 255, 255)";
         // this.context.fillStyle = "rgba(255, 255, 255)";
-        this.context.lineWidth = 2; // Scale-independent line width
+        this.context.lineWidth = 3; // Scale-independent line width
 
         // Draw all existing shapes
         // const t1= Date.now();
@@ -2265,7 +2327,7 @@ export class Game {
             }
         } else if (shape.type === "text") {
             const fontSize = 20;
-            this.context.font = `${fontSize}px sans-serif`;
+            this.context.font = `bold ${fontSize}px sans-serif`;
             this.context.fillStyle = "white";
             this.context.fillText(shape.content, shape.x, shape.y + fontSize + 8);
         }
@@ -2316,6 +2378,13 @@ export class Game {
             this.onPanChange(true);
         }
 
+        if (this.selectedTool === "cursor" && this.isSelecting) {
+            const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
+            this.lastShape = this.selectedShape;
+            this.lastMouseShapeX = screenCoords.x;
+            this.lastMouseShapeY = screenCoords.y;
+        }
+
         if (this.selectedTool === "pencil") {
             this.isDrawing = true;
             this.pencilCoords = [{ x: worldCoords.x, y: worldCoords.y }];
@@ -2329,12 +2398,66 @@ export class Game {
     }
 
     mouseMoveHandler = (e: MouseEvent) => {
-        if (!this.clicked) return;
+        if (!this.clicked) {
+            if (this.selectedTool === "cursor") {
+                const worldCoords = this.screenToWorld(e.clientX, e.clientY);
+                const shape = this.getElement(worldCoords.x, worldCoords.y);
+                // console.log(shape);
+                if (shape!) {
+                    this.selectedShape = shape;
+                    this.isSelecting = true;
+                    if (this.onSelectChange) {
+                        this.onSelectChange(true);
+                    }
+                    return;
+                }
+                this.selectedShape = null;
+                this.isSelecting = false;
+                if (this.onSelectChange) {
+                    this.onSelectChange(false);
+                }
+            }
+            return;
+        }
 
         const worldCoords = this.screenToWorld(e.clientX, e.clientY);
         const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
 
-        if (this.selectedTool === "grab") {
+        if (this.selectedTool === "cursor" && this.isSelecting && this.selectedShape) {
+            const deltaX = screenCoords.x - this.lastMouseShapeX;
+            const deltaY = screenCoords.y - this.lastMouseShapeY;
+
+            const worldDeltaX = (deltaX / this.scale);
+            const worldDeltaY = (deltaY / this.scale);
+
+            this.lastMouseShapeX = screenCoords.x;
+            this.lastMouseShapeY = screenCoords.y;
+            this.existingShapes = this.existingShapes.filter((shape) => shape.id !== this.selectedShape?.id);
+            if (this.selectedShape?.type === "rect") {
+                const newShape = { ...this.selectedShape };
+                newShape.x += worldDeltaX;
+                newShape.y += worldDeltaY;
+                this.selectedShape = newShape;
+                this.existingShapes.push(newShape);
+            } else if (this.selectedShape.type === "elip") {
+                const newShape = { ...this.selectedShape };
+                newShape.centerX += worldDeltaX;
+                newShape.centerY += worldDeltaY;
+                this.selectedShape = newShape;
+                this.existingShapes.push(newShape);
+            } else if (this.selectedShape.type === "line") {
+                const newShape = { ...this.selectedShape };
+                newShape.startX += worldDeltaX;
+                newShape.startY += worldDeltaY;
+                newShape.endX += worldDeltaX;
+                newShape.endY += worldDeltaY;
+                this.selectedShape = newShape;
+                this.existingShapes.push(newShape);
+            }
+            this.render();
+        }
+
+        else if (this.selectedTool === "grab") {
             // Handle panning
             const deltaX = screenCoords.x - this.lastMouseX;
             const deltaY = screenCoords.y - this.lastMouseY;
@@ -2460,28 +2583,39 @@ export class Game {
                 "",
                 this.context,
                 this.scale,
-                this, "#ffffff", 2, 20
+                this, "#ffffff", 3, 20
             );
             return;
         } else if (this.selectedTool === "grab") {
             // Just finish the grab operation
             this.savePanPostions();
             this.saveScale();
+        } else if (this.selectedTool === "cursor" && this.selectedShape) {
+            this.socket.send(JSON.stringify({
+                type: "chat-update",
+                message: JSON.stringify(this.selectedShape),
+                roomId: this.roomId,
+                chatId: this.selectedShape?.id
+            }));
+
+            this.isSelecting = false;
+            this.selectedShape = null;
+            if (this.onSelectChange) {
+                this.onSelectChange(false);
+            }
         }
 
         if (shape) {
-            this.existingShapes.push(shape);
+            //this.existingShapes.push(shape);
 
             this.socket.send(JSON.stringify({
                 type: "chat",
                 message: JSON.stringify(shape),
                 roomId: this.roomId
             }));
-
-            // Set tool to cursor after drawing is complete
+            
             this.setTool("cursor");
 
-            // Notify parent component about tool change
             if (this.onToolChange) {
                 this.onToolChange("cursor");
             }
@@ -2493,7 +2627,7 @@ export class Game {
     }
 
     doubleClickHandler = (e: MouseEvent) => {
-        if (this.selectedTool === "cursor") {
+        if (this.selectedTool === "cursor" && !this.isSelecting) {
             const worldCoords = this.screenToWorld(e.clientX, e.clientY);
             this.activeTextBox = new TextBox(
                 e.clientX,
@@ -2503,7 +2637,7 @@ export class Game {
                 "",
                 this.context,
                 this.scale,
-                this, "#ffffff", 2, 20
+                this, "#ffffff", 3, 2
             );
         }
     }
@@ -2544,6 +2678,68 @@ export class Game {
             if (this.onToolChange) {
                 this.onToolChange("text");
             }
+        }
+    }
+
+    getElement = (x: number, y: number) => {
+        // return this.existingShapes.find((shape) => this.checkElement(shape, x, y));
+        for (let i = this.existingShapes.length - 1; i >= 0; i--) {
+            if (this.checkElement(this.existingShapes[i], x, y)) {
+                return this.existingShapes[i];
+            }
+        }
+        return undefined;
+    }
+
+    checkElement = (shape: Shape, x: number, y: number) => {
+        if (shape.type === 'rect') {
+            const x1 = shape.x;
+            const y1 = shape.y;
+            const x2 = shape.x + shape.width;
+            const y2 = shape.y + shape.height
+
+            // if lies inside the rectangle
+            // if (x > x1 && x < x2 && y > y1 && y < y2) {
+            //     console.log("Rect spotted!");
+            // }
+
+            return (x > x1 && x < x2 && y > y1 && y < y2);
+        } else if (shape.type === 'elip') {
+            const h = shape.centerX;
+            const k = shape.centerY;
+            const a = shape.radiusX;
+            const b = shape.radiusY;
+            const p = (((x - h) * (x - h)) / (a * a)) + (((y - k) * (y - k)) / (b * b));
+            // if (p <= 1.0) {
+            //     console.log("ellipse spotted!");
+            // }
+            return p <= 1.0;
+        } else if (shape.type === "line") {
+            const a1 = shape.startX;
+            const b1 = shape.startY;
+            const a2 = shape.endX;
+            const b2 = shape.endY;
+
+            const dx = a2 - a1;
+            const dy = b2 - b1;
+
+            const length = Math.hypot(dx, dy);
+            if (length === 0) return false;  // Avoid divide by zero on a degenerate line
+
+            const cross = (dy) * (x - a1) - (dx) * (y - b1);
+            const distToLine = Math.abs(cross) / length;
+
+            const tolerance = 3;
+            if (distToLine > tolerance) return false;
+
+            const withinX = (x >= Math.min(a1, a2) - tolerance && x <= Math.max(a1, a2) + tolerance);
+            const withinY = (y >= Math.min(b1, b2) - tolerance && y <= Math.max(b1, b2) + tolerance);
+            // if(withinX && withinY){
+            //     console.log("Line spotted!");
+            // }
+            return withinX && withinY;
+        } else {
+            return false;
         }
     }
 }

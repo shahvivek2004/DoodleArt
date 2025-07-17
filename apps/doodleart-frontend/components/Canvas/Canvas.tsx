@@ -8,14 +8,14 @@ import { Game } from "@/draw/Game";
 
 export type Tool = "rect" | "pencil" | "elip" | "line" | "text" | "cursor" | "grab";
 
-export type ToolConfig = {
-    color: string,
-    strokeWidth: number,
-    bgColor: string,
-    lineDashX: number,
-    lineDashY: number,
-    fontSize: number
-};
+// export type ToolConfig = {
+//     color: string,
+//     strokeWidth: number,
+//     bgColor: string,
+//     lineDashX: number,
+//     lineDashY: number,
+//     fontSize: number
+// };
 
 export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }) {
 
@@ -24,6 +24,7 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
     const [game, setGame] = useState<Game>();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [panningStatus, setPanningStatus] = useState<boolean>(false);
+    const [selectShape, setSelectShape] = useState<boolean>(false);
 
 
     const getCursorClass = (tool: Tool) => {
@@ -32,6 +33,7 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
                 if (panningStatus) return "cursor-grabbing";
                 return "cursor-grab";
             case "cursor":
+                if(selectShape) return "cursor-move";
                 return "cursor-default";
             default:
                 return "cursor-crosshair";
@@ -126,6 +128,10 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
 
     const handlePanChange = (status: boolean) => {
         setPanningStatus(status);
+    };
+
+    const handleSelectionChange = (status: boolean) => {
+        setSelectShape(status);
     }
 
     // useEffect(() => {
@@ -162,6 +168,7 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
             // Register callback for tool changes from Game class
             g.registerToolChangeCallback(handleToolChange);
             g.registerPanningCallback(handlePanChange);
+            g.registerSelectingCallback(handleSelectionChange);
             //console.log("tool change registered!");
 
             return () => {
@@ -198,10 +205,9 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
     )
 }
 
-
 function ToolBar({ selectedTool, setSelectedTool }: { selectedTool: Tool, setSelectedTool: (s: Tool) => void }) {
     return (
-        <div className="flex flex-row bg-[#232329] h-16 w-md rounded-xl mt-4 gap-3 items-center text-center p-3 justify-center">
+        <div className="flex flex-row bg-[#232329] h-16 w-md rounded-xl mt-4 gap-3 items-center text-center p-3 justify-center cursor-default">
             <IconButton onClick={() => setSelectedTool("grab")} activated={selectedTool === "grab"} icon={<Hand width={18} height={18} />} label="Grab Tool" keyVal={1} />
             <IconButton onClick={() => setSelectedTool("cursor")} activated={selectedTool === "cursor"} icon={<MousePointer width={18} height={18} />} label="Cursor Tool" keyVal={2} />
             <IconButton onClick={() => setSelectedTool("rect")} activated={selectedTool === "rect"} icon={<RectangleHorizontalIcon width={18} height={18} />} label="Rectangle Tool" keyVal={3} />

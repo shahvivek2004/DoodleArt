@@ -98,7 +98,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="text-gray-900 font-semibold">Visit Us</h3>
-                                        <p className="text-gray-600">123 Creative Street<br />Art District, AD 12345</p>
+                                        <p className="text-gray-600"></p>
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +220,7 @@ export default function ContactPage() {
                         <p className="text-gray-600 mb-6">
                             Join thousands of artists who are already creating amazing artwork with DoodleArt.
                         </p>
-                        <button className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors" onClick={()=>{router.push('/dashboard')}}>
+                        <button className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors" onClick={() => { router.push('/dashboard') }}>
                             Get Started Now
                         </button>
                     </div>

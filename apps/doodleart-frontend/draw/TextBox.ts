@@ -27,6 +27,7 @@ export class TextBox {
         this.textbox.style.border = "none";
         this.textbox.style.outline = "none";
         this.textbox.style.color = "white";
+        this.textbox.style.fontWeight = "bold";
         this.textbox.style.fontSize = `${fontSize * scale}px`;
         this.textbox.value = content;
         this.textbox.placeholder = "Type here...";

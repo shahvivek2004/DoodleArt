@@ -428,6 +428,7 @@ app.get('/api/v1/user/chats/:roomId', authenticator, async (req, res) => {
                 createAt: "asc"
             },
             select: {
+                id:true,
                 message: true
             },
             take: 2000
