@@ -2338,7 +2338,7 @@ export class Game {
 
         // Set common styles once
         this.context.strokeStyle = "rgba(255, 255, 255, 0.8)";
-        this.context.setLineDash([5 / this.scale, 5 / this.scale]);
+        //this.context.setLineDash([5 / this.scale, 5 / this.scale]);
         this.context.lineWidth = 2;
 
         const width = worldEnd.x - worldStart.x;
