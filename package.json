@@ -7,14 +7,14 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "start:web":"cd apps/doodleart-frontend && npm run start",
-    "start:ws":"cd apps/ws-backend && npm run start",
-    "start:backend":"cd apps/http-backend && npm run start",
-    "db:generate":"cd packages/db && npx prisma generate && cd ../.."
+    "start:web": "cd apps/doodleart-frontend && npm run start",
+    "start:ws": "cd apps/ws-backend && npm run start",
+    "start:backend": "cd apps/http-backend && npm run start",
+    "db:generate": "cd packages/db && npx prisma generate && cd ../.."
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
-    "turbo": "^2.5.0",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.5",
     "typescript": "5.8.2"
   },
   "packageManager": "pnpm@9.0.0",

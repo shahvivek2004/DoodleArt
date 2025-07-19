@@ -2637,7 +2637,7 @@ export class Game {
                 "",
                 this.context,
                 this.scale,
-                this, "#ffffff", 3, 2
+                this, "#ffffff", 3, 20
             );
         }
     }

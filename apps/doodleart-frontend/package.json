@@ -9,25 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "axios": "^1.8.4",
-    "cookie": "^1.0.2",
-    "jose": "^6.0.10",
+    "axios": "^1.10.0",
+    "jose": "^6.0.12",
     "lucide-react": "^0.488.0",
-    "next": "15.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "next": "15.4.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@repo/ui": "workspace:*",
+    "@repo/fullstack-common": "workspace:*"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@repo/fullstack-common": "workspace:*",
-    "@repo/ui": "workspace:*",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19.1.1",
-    "@types/react-dom": "^19.1.2",
-    "eslint": "^9",
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^20.19.9",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "eslint": "^9.31.0",
     "eslint-config-next": "15.3.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3"
   }
 }
