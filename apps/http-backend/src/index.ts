@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import { authenticator } from './config';
 import { requiredBodySignup, requiredBodySignin, createRoomSchema } from '@repo/fullstack-common/types';
 import { db } from '@repo/db/prismaClient';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import helmet from 'helmet';

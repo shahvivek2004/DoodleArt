@@ -22,4 +22,4 @@ RUN pnpm run db:generate
 EXPOSE 8080
 
 # Start the backend
-CMD ["pnpm", "run", "start:ws"]
+CMD ["pnpm", "start:ws"]

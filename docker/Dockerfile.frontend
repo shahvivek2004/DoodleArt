@@ -22,4 +22,4 @@ RUN pnpm run build
 EXPOSE 3000
 
 # Start the web application
-CMD ["pnpm", "run", "start:web"]
+CMD ["pnpm", "start:web"]
