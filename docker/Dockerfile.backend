@@ -1,11 +1,10 @@
-# Build stage - includes all dependencies and builds the app
+
 FROM node:24-alpine AS builder
 
 WORKDIR /app
 
 RUN npm install -g pnpm
 
-# Copy dependency files first (better layer caching)
 COPY ./package.json ./package.json
 COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
 COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
@@ -13,25 +12,20 @@ COPY ./turbo.json ./turbo.json
 COPY ./packages ./packages
 COPY ./apps/http-backend/ ./apps/http-backend/
 
-# Install all dependencies (including dev dependencies for build)
 RUN pnpm install --frozen-lockfile
 
-# Generate Prisma client and build
 RUN pnpm db:generate
 RUN pnpm build
 
-# Production stage - minimal runtime environment
 FROM node:24-alpine AS runner
 
 WORKDIR /app
 
 RUN npm install -g pnpm
 
-# Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-# Copy package files for production dependencies
 COPY ./package.json ./package.json
 COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
 COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
@@ -39,16 +33,12 @@ COPY ./turbo.json ./turbo.json
 COPY ./packages ./packages
 COPY ./apps/http-backend/package.json ./apps/http-backend/package.json
 
-# Install ONLY production dependencies
 RUN pnpm install --prod --frozen-lockfile
 
-# Copy built application from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app/apps/http-backend/dist ./apps/http-backend/dist
+COPY --from=builder --chown=nodejs:nodejs /app/packages/db ./packages/db
+COPY --from=builder --chown=nodejs:nodejs /app/apps/http-backend/node_modules/@repo/db ./apps/http-backend/node_modules/@repo/db
 
-# Copy generated Prisma client (if using Prisma)
-# COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-
-# Clean up pnpm cache to reduce size
 RUN pnpm store prune
 
 USER nodejs
