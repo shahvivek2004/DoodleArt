@@ -151,9 +151,6 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@repo/fullstack-common':
-        specifier: workspace:*
-        version: link:../../packages/fullstack-common
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
