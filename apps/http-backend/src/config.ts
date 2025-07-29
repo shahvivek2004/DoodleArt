@@ -19,7 +19,7 @@ export function authenticator(req: Request, res: Response, next: NextFunction) {
     const token = authHeader;
     if (!token) {
         // console.log("Token not present");
-        res.status(401).json({ message: "Unauthenticated!" });
+        res.status(401).json({ message: "Unauthenticated! please sign-in again!" });
         return;
     }
 
@@ -33,6 +33,6 @@ export function authenticator(req: Request, res: Response, next: NextFunction) {
         next();
     } catch (error) {
         // console.log("token got expired");
-        res.status(401).json({ message: "User is authenticated!" });
+        res.status(401).json({ message: "User is unauthenticated! please sign-in again!" });
     }
 }

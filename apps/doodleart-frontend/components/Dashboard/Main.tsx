@@ -2,12 +2,14 @@
 import { Clock, FolderOpen, HelpCircle, Layers, LogOut, Menu, Plus, Search, Settings, Share2, Star, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { CreateRoomModal } from "./pop-ups/CreateRoomModal"; // Import the modal component
 import { useRouter } from "next/navigation";
-import { HTTP_URL } from "@/config";
+import { HTTP_URL } from "@/middleware";
 import { getFavorites, setFavorite } from "@/draw/indexedDB";
 import { ShareRoomModal } from "./pop-ups/ShareRoomModal";
+import { Loader } from "../Fetch/Loader";
+import { AuthComp } from "../Fetch/AuthComp";
 
 type ProjectColor = 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'teal';
 
@@ -27,6 +29,8 @@ interface RoomWithUI extends Room {
 export function DashBoard() {
 
     const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticatd] = useState(false);
     const [firstLetter, setFirstLetter] = useState("A");
     const [activeTab, setActiveTab] = useState('recent');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,7 +51,6 @@ export function DashBoard() {
             const response = await axios.get(`${HTTP_URL}/api/v1/user/rooms/all`, { withCredentials: true });
 
             // console.log('API Response:', response.data);
-
             // Check if the response has the rooms property
             const roomsData = response.data.rooms || [];
             const nfl: string = response.data.nfl;
@@ -70,8 +73,16 @@ export function DashBoard() {
             setFirstLetter(nfl.toUpperCase());
             setData(transformedRooms);
             setProjects(recentRooms);
+            setIsAuthenticatd(true);
+            setLoading(false);
         } catch (error) {
-            console.error('Error fetching rooms:', error);
+            const err = error as AxiosError;
+            console.log(err.response?.status);
+            setIsAuthenticatd(false);
+            setLoading(false);
+            if (err.response?.status === 401) {
+                setIsAuthenticatd(false);
+            }
         }
     }
 
@@ -139,6 +150,17 @@ export function DashBoard() {
         );
     };
 
+    if (loading) {
+        return (
+            <Loader />
+        )
+    }
+
+    if (!isAuthenticated) {
+        return (
+              <AuthComp quitfunc={handleSignout}/>
+        )
+    }
     return (
         <div className="bg-[#0a0a19] min-h-screen">
             {/* Nav-bar */}

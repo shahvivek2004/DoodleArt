@@ -163,6 +163,7 @@
 
 import { useEffect, useState } from "react";
 import { Canvas } from "./Canvas";
+import { Loader } from "../Fetch/Loader";
 
 export function RoomCanvas({ roomId }: { roomId: string }) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -285,7 +286,9 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
     }, [roomId]);
 
     if (isLoading) {
-        return <div className="flex justify-center items-center py-8">Connecting to server...</div>;
+        return (
+            <Loader/>
+        )
     }
 
     if (error) {

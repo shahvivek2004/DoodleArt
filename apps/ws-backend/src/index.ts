@@ -1002,14 +1002,14 @@ wss.on('connection', async (ws, req) => {
     const url = req?.url;
     // Token verification
     if (!url) {
-        ws.close(1008, "Invalid connection request");
+        ws.close(1008, "Invalid connection request! Please try-again!");
         return;
     }
 
     const token = tokenExtraction(url);
     const userId = checkUser(token);
     if (!userId) {
-        ws.close(1008, "Authentication failed");
+        ws.close(1008, "Authentication failed! Please Sign-in Again!");
         return;
     }
 

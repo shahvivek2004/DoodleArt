@@ -11,3 +11,7 @@ node_modules
 **/.turbo
 .vscode
 secrets
+.next
+**/.next
+**/README.md
+README.md

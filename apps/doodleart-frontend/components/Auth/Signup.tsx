@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
 import { requiredBodySignup } from '@repo/fullstack-common/types';
-import { HTTP_URL } from "@/config";
+import { HTTP_URL } from "@/middleware";
 
 export function SignUp() {
 
