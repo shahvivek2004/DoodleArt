@@ -25,3 +25,7 @@ jobs:
           file: ./docker/Dockerfile.frontend
           push: true
           tags: vivekdshah/doodleart-fe-app:${{ github.sha }}
+          build-args: |
+            HTTP_URL=${{ secrets.HTTP_URL }}
+            WS_URL=${{ secrets.WS_URL }}
+            FE_URL=${{ secrets.FE_URL }}
