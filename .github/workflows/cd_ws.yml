@@ -1,8 +1,8 @@
-name: Continuous Deployment(CD) Backend
+name: Continuous Deployment(CD) WS
 
 on:
   workflow_run:
-    workflows: ["CI"] # This must match the name in ci.yml exactly
+    workflows: ["CI"]
     types:
       - completed
 
@@ -23,6 +23,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./docker/Dockerfile.backend
+          file: ./docker/Dockerfile.ws
           push: true
-          tags: vivekdshah/doodleart-http-app:${{ github.sha }}
+          tags: vivekdshah/doodleart-ws-app:${{ github.sha }}
