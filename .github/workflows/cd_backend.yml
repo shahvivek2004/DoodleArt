@@ -1,7 +1,10 @@
-name: Continuous Deployment(CD) Backend (prod)
+name: Continuous Deployment(CD) Backend
+
 on:
-    push:
-        branches: ["main"]
+   workflow_run:
+    workflows: ["CI"]        # This must match the name in ci.yml exactly
+    types:
+      - completed
 
 jobs:
    build:
