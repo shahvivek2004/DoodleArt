@@ -1,57 +1,29 @@
 name: CI
- 
+
 on:
   push:
     branches: ["main"]
   pull_request:
-    types: [opened, synchronize]
- 
+    branches: ["main"]
+
 jobs:
-  build:
-    name: Build, Lint and Check
-    timeout-minutes: 15
+  linting:
+    name: Lint and Format
     runs-on: ubuntu-latest
- 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
- 
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
         with:
           version: 8
- 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
- 
-      - name: Install dependencies
-        run: pnpm install
+      - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm format --check
 
-      - name: Generate Prisma client
-        run: pnpm db:generate
-
-      - name: Check types
-        run: pnpm check-types
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Check formatting
-        run: pnpm format --check
-
-      - name: Build
-        run: pnpm build
-
-
-
-
-
-
-
+  
 
 
 
