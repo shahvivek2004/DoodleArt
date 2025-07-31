@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { RoomCanvas } from "../Canvas/RoomCanvas";
 import { HTTP_URL } from "@/middleware";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AuthComp } from "../Fetch/AuthComp";
 import { Loader } from "../Fetch/Loader";
+import { Authorized } from "../Fetch/Authorized";
 
 
 export const SharedRooms = ({ id }: { id: string }) => {
@@ -32,12 +32,10 @@ export const SharedRooms = ({ id }: { id: string }) => {
         fetch();
     }, [id, sharedKey]);
 
-    const handleSignout = async () => {
+    const handleSignout = () => {
         // setActiveTab('logout');
         try {
-            await axios.post(`${HTTP_URL}/api/v1/auth/signout`, {}, { withCredentials: true });
-            localStorage.clear();
-            roter.push('/signin');
+            roter.push('/dashboard');
         } catch {
             alert("Wait for a second!..");
         }
@@ -54,6 +52,6 @@ export const SharedRooms = ({ id }: { id: string }) => {
     }
 
     return (
-        <AuthComp quitfunc={handleSignout} />
+        <Authorized quitfunc={handleSignout} />
     )
 }
