@@ -159,7 +159,6 @@ export function SignIn() {
                             Submit
                         </button>
 
-                        {/* Navigate link */}
                         <p className="font-semibold">
                             Don&apos;t have an account?{" "}
                             <Link href="/signup" className="text-gray-400 underline">
