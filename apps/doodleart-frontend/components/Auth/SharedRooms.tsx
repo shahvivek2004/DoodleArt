@@ -15,7 +15,6 @@ export const SharedRooms = ({ id }: { id: string }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const sharedKey = router.get('sharedKey');
     const roter = useRouter();
-    // console.log(sharedKey);
     useEffect(() => {
         async function fetch() {
             try {
