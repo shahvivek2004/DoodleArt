@@ -1,5 +1,6 @@
 // ShareRoomModal.tsx
 "use client"
+import { FE_URL } from "@/middleware";
 import { Check, Clipboard, X } from "lucide-react";
 import { useState } from "react";
 
@@ -12,7 +13,7 @@ interface shareRoomModalProps {
 
 export function ShareRoomModal({ isOpen, onClose, sharedKey, roomId }: shareRoomModalProps) {
     const [copied, setCopied] = useState(false);
-    const url = `http://localhost:3000/canvas/${roomId}?sharedKey=${sharedKey}`;
+    const url = `${FE_URL}/canvas/${roomId}?sharedKey=${sharedKey}`;
 
     const handleCopy = async () => {
         try {
