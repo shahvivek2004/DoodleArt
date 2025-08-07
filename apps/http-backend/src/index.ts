@@ -517,7 +517,7 @@ app.get('/api/v1/room/status/:roomId', authenticator, async (req, res) => {
 // ⏩ Logout endpoint
 app.post('/api/v1/auth/signout', (req: Request, res: Response) => {
     try {
-        res.status(200).clearCookie('__uIt', { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) }).json({ flag: true, message: "Logout Successfully" });
+        res.status(200).clearCookie('__uIt', cookieConfig).json({ flag: true, message: "Logout Successfully" });
     } catch {
         res.status(500).json({ flag: false, message: "Internal Server Error!" });
     }
