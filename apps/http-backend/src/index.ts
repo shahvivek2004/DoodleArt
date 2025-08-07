@@ -27,7 +27,7 @@ app.use(helmet());
 app.use(json());
 app.use(cookieParser());
 app.use(cors({
-    origin: ['http://doodleart.live', 'http://localhost:3000'], // Your frontend URL
+    origin: ['https://doodleart.live', 'http://localhost:3000'], // Your frontend URL
     credentials: true,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
