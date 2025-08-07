@@ -32,11 +32,9 @@ export function SignIn() {
     }
 
     try {
-      const response = await axios.post(
-        `${HTTP_URL}/api/v1/auth/signin`,
-        form,
-        { withCredentials: true }
-      );
+      await axios.post(`${HTTP_URL}/api/v1/auth/signin`, form, {
+        withCredentials: true,
+      });
       // console.log(response.data);
       router.push("/dashboard");
     } catch (err) {
