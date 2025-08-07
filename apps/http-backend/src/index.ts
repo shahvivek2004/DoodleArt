@@ -27,7 +27,7 @@ app.use(helmet());
 app.use(json());
 app.use(cookieParser());
 app.use(cors({
-    origin: ['http://doodleart.live','http://localhost:3000'], // Your frontend URL
+    origin: ['http://doodleart.live', 'http://localhost:3000'], // Your frontend URL
     credentials: true,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -147,7 +147,7 @@ app.post('/api/v1/auth/signin', async (req, res) => {
 
         //Generate Tokens
         const token = jwt.sign({ userId: userData.id, nfl: userData.name[0] }, JWT_SECRET!, { expiresIn: EXP_TIME } as jwt.SignOptions);
-        res.status(200).cookie('__uIt', token, { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) }).json({ message: "Successful Login!", name: userData.name });
+        res.status(200).cookie('__uIt', token, { domain: '.doodleart.live', httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) }).json({ message: "Successful Login!", name: userData.name });
     } catch (error) {
         res.status(500).json({ message: "Internal Server Error!" });
     }
@@ -214,7 +214,7 @@ app.get('/auth/google/return', (req, res, next) => {
         try {
             const user = req.user as { id: string; email: string; nfl: string };
             const token = jwt.sign({ userId: user.id, nfl: user.nfl }, JWT_SECRET!, { expiresIn: EXP_TIME } as jwt.SignOptions);
-            res.cookie('__uIt', token, { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) });
+            res.cookie('__uIt', token, { domain: '.doodleart.live', httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) });
 
             // ✅ Redirect to frontend
             res.redirect(`${FE_URL}/dashboard`);
@@ -292,7 +292,7 @@ app.get('/auth/facebook/return', (req, res, next) => {
     try {
         const user = req.user as { id: string; email: string; nfl: string };
         const token = jwt.sign({ userId: user.id, nfl: user.nfl }, JWT_SECRET!, { expiresIn: EXP_TIME } as jwt.SignOptions);
-        res.cookie('__uIt', token, { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) });
+        res.cookie('__uIt', token, { domain: '.doodleart.live', httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) });
 
         res.redirect(`${FE_URL}/dashboard`);
     } catch (error) {
@@ -367,7 +367,7 @@ app.get('/auth/github/return', (req, res, next) => {
         try {
             const user = req.user as { id: string, email: string, nfl: string };
             const token = jwt.sign({ userId: user.id, nfl: user.nfl }, JWT_SECRET!, { expiresIn: EXP_TIME } as jwt.SignOptions);
-            res.cookie('__uIt', token, { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) });
+            res.cookie('__uIt', token, { domain: '.doodleart.live', httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) });
             res.redirect(`${FE_URL}/dashboard`);
         } catch (error) {
             res.redirect(`${FE_URL}/signin`);
@@ -387,7 +387,7 @@ app.post('/api/v1/user/room', authenticator, async (req: Request, res: Response)
     const result = createRoomSchema.safeParse(req.body);
     if (!result.success) {
         const errors = result.error.format();
-        console.log(`Error during input valdation:${errors}`);
+        //console.log(`Error during input valdation:${errors}`);
         res.status(400).json({
             message: "Input Wrong Format!",
             error: errors
@@ -428,7 +428,7 @@ app.get('/api/v1/user/chats/:roomId', authenticator, async (req, res) => {
                 createAt: "asc"
             },
             select: {
-                id:true,
+                id: true,
                 message: true
             },
             take: 2000
