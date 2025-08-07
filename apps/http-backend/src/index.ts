@@ -27,7 +27,7 @@ app.use(helmet());
 app.use(json());
 app.use(cookieParser());
 app.use(cors({
-    origin: 'http://localhost:3000', // Your frontend URL
+    origin: ['http://doodleart.live','http://localhost:3000'], // Your frontend URL
     credentials: true,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -163,7 +163,7 @@ app.get('/api/v1/auth/google',
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: 'http://localhost:4000/auth/google/return',
+    callbackURL: `${HTTP_URL}/auth/google/return`,
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
     try {
@@ -235,7 +235,7 @@ app.get('/api/v1/auth/facebook',
 passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID!,
     clientSecret: process.env.FACEBOOK_APP_SECRET!,
-    callbackURL: 'http://localhost:4000/auth/facebook/return',
+    callbackURL: `${HTTP_URL}/auth/facebook/return`,
     profileFields: ['id', 'displayName', 'photos', 'email'] // Request email permission
 }, async (accessToken, refreshToken, profile, done) => {
     try {
@@ -310,7 +310,7 @@ app.get('/api/v1/auth/github',
 passport.use(new GithubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID!,
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    callbackURL: 'http://localhost:4000/auth/github/return',
+    callbackURL: `${HTTP_URL}/auth/github/return`,
     scope: ['user:email'] // Request email access
 }, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
     try {
