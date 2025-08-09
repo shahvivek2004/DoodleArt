@@ -192,7 +192,7 @@ export function Canvas({ roomId, socket }: { roomId: string, socket: WebSocket }
             {/* Credit */}
             <div className={`absolute left-85/100 top-90/100 z-10 ${panningStatus ? 'pointer-events-none' : 'pointer-events-auto'}`}>
                 <a href="https://github.com/shahvivek2004">
-                    <div className="flex flex-row gap-2 bg-[#232329] h-12 w-48 rounded-lg justify-center items-center hover:underline p-1">
+                    <div className="flex flex-row gap-2 bg-[#232329] h-12 w-48 rounded-lg justify-center items-center hover:underline p-1 text-white">
                         <div><Github /></div>
                         <div>Created by Vivek</div>
                     </div>
