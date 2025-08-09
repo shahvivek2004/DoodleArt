@@ -285,15 +285,15 @@ export function DashBoard() {
                     {/* Left sidebar */}
                     <div className="w-full md:w-64 mb-6 md:mb-0 md:mr-8">
                         <nav className="space-y-1">
-                            <button onClick={() => { setActiveTab('recent'); const filltered = data.slice(-5); setProjects(filltered); }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'recent' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353]'}`}>
+                            <button onClick={() => { setActiveTab('recent'); const filltered = data.slice(-5); setProjects(filltered); }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'recent' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353] text-white'}`}>
                                 <Clock className="mr-3 h-5 w-5" />
                                 <span>Recent</span>
                             </button>
-                            <button onClick={() => { setActiveTab('starred'); const filltered = data.filter(p => p.isFavourite); setProjects(filltered) }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'starred' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353]'}`}>
+                            <button onClick={() => { setActiveTab('starred'); const filltered = data.filter(p => p.isFavourite); setProjects(filltered) }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'starred' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353] text-white'}`}>
                                 <Star className="mr-3 h-5 w-5" />
                                 <span>Starred</span>
                             </button>
-                            <button onClick={() => { setActiveTab('alldraw'); setProjects(data); }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'alldraw' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353]'}`}>
+                            <button onClick={() => { setActiveTab('alldraw'); setProjects(data); }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'alldraw' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353] text-white'}`}>
                                 <FolderOpen className="mr-3 h-5 w-5" />
                                 <span>All Drawings</span>
                             </button>
@@ -301,12 +301,12 @@ export function DashBoard() {
                                 <Users className="mr-3 h-5 w-5" />
                                 <span>Shared with me</span>
                             </button> */}
-                            <button onClick={() => { setActiveTab('trash') }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'trash' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353]'}`}>
+                            <button onClick={() => { setActiveTab('trash') }} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'trash' ? 'bg-[#5f00a353] text-[#e3bcff]' : 'hover:bg-[#5f00a353] text-white'}`}>
                                 <Trash2 className="mr-3 h-5 w-5" />
                                 <span>Trash</span>
                             </button>
                             <div className="pt-4 border-t border-gray-700">
-                                <button onClick={handleSignout} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-500 ${activeTab === 'logout' ? 'bg-[#ff000047] text-[#e3bcff]' : 'hover:bg-[#ff000047]'}`}>
+                                <button onClick={handleSignout} className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-500 ${activeTab === 'logout' ? 'bg-[#ff000047] text-[#e3bcff]' : 'hover:bg-[#ff000047] '}`}>
                                     <LogOut className="mr-3 h-5 w-5" />
                                     <span>Log out</span>
                                 </button>

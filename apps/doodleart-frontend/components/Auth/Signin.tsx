@@ -65,7 +65,7 @@ export function SignIn() {
       {/* Sign In Form Body */}
       <div className="flex flex-col bg-[#211e34] items-center w-82 md:w-94 lg:w-md h-max p-6 rounded-3xl mt-15 gap-8 justify-center">
         {/* Sign In Title */}
-        <h1 className="text-3xl md:text-4xl font-bold">Sign In</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-white">Sign In</h1>
 
         {/* Main Form Body */}
         <div className="flex flex-col items-center gap-5 w-full">
@@ -197,12 +197,12 @@ export function SignIn() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="bg-[#5f00a3] p-3 rounded-lg w-full font-bold text-lg hover:bg-[#5f00a375] active:bg-[#5f00a3b2]"
+              className="bg-[#5f00a3] p-3 rounded-lg w-full font-bold text-lg hover:bg-[#5f00a375] active:bg-[#5f00a3b2] text-white"
             >
               Submit
             </button>
 
-            <p className="font-semibold">
+            <p className="font-semibold text-white">
               Don&apos;t have an account?{" "}
               <Link href="/signup" className="text-gray-400 underline">
                 Click Here
