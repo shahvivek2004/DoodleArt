@@ -1093,7 +1093,9 @@ wss.on('connection', async (ws, req) => {
                     return;
                 }
 
+                //console.log(users.find(x=>x.ws===ws)?.rooms);
                 currentUser.rooms = currentUser.rooms.filter(x => x !== roomId);
+                //console.log(users.find(x=>x.ws===ws)?.rooms);
                 //log('info', 'User left room', { userId, roomId });
             }
 
@@ -1259,7 +1261,9 @@ wss.on('connection', async (ws, req) => {
         if (user && user.pingTimeout) {
             clearTimeout(user.pingTimeout);
         }
+        //console.log(users);
         users = users.filter(x => x.ws !== ws);
+        //console.log(users)
         // rateLimiter.delete(userId);
     });
 
