@@ -2263,7 +2263,10 @@ export class Game {
 
     drawShape(shape: Shape) {
         if (shape.type === "rect") {
-            this.context.strokeRect(shape.x, shape.y, shape.width, shape.height);
+            //this.context.strokeRect(shape.x, shape.y, shape.width, shape.height);
+            this.context.beginPath();
+            this.context.roundRect(shape.x, shape.y, shape.width, shape.height, [25]);
+            this.context.stroke();
         } else if (shape.type === "elip") {
             this.context.beginPath();
             this.context.ellipse(shape.centerX, shape.centerY, Math.abs(shape.radiusX), Math.abs(shape.radiusY), 0, 0, 2 * Math.PI);
@@ -2345,7 +2348,10 @@ export class Game {
         const height = worldEnd.y - worldStart.y;
 
         if (this.selectedTool === "rect") {
-            this.context.strokeRect(worldStart.x, worldStart.y, width, height);
+            //this.context.strokeRect(worldStart.x, worldStart.y, width, height);
+            this.context.beginPath();
+            this.context.roundRect(worldStart.x, worldStart.y, width, height, [25]);
+            this.context.stroke();
         } else if (this.selectedTool === "elip") {
             const centerX = (worldStart.x + worldEnd.x) / 2;
             const centerY = (worldStart.y + worldEnd.y) / 2;
@@ -2613,7 +2619,7 @@ export class Game {
                 message: JSON.stringify(shape),
                 roomId: this.roomId
             }));
-            
+
             this.setTool("cursor");
 
             if (this.onToolChange) {

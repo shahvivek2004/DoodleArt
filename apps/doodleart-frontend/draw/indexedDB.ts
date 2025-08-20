@@ -48,3 +48,55 @@ export async function setFavorite(id: number, isFavourite: boolean) {
         tx.onabort = () => reject(tx.error);
     });
 }
+
+
+const DB_NAME_2 = "trashDB";
+const STORE_NAME_2 = "trash";
+
+export function openDB1(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME_2, DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(STORE_NAME_2)) {
+                db.createObjectStore(STORE_NAME_2, { keyPath: "id" });
+            }
+        };
+    });
+}
+
+
+export async function getTrashData(): Promise<Record<number, boolean>> {
+    const db = await openDB1();
+    return new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME_2, "readonly");
+        const store = tx.objectStore(STORE_NAME_2);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            const result = request.result || [];
+            const map: Record<number, boolean> = {};
+            result.forEach((item: { id: number; isInTrash: boolean }) => {
+                map[item.id] = item.isInTrash;
+            });
+            resolve(map);
+        }
+    })
+
+}
+
+export async function setTrashData(id: number, isInTrash: boolean) {
+    const db = await openDB1();
+    const tx = db.transaction(STORE_NAME_2, "readwrite");
+    const store = tx.objectStore(STORE_NAME_2);
+    store.put({ id, isInTrash });
+    await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+    });
+}
