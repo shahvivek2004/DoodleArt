@@ -21,9 +21,9 @@ export const FE_URL = process.env.FE_URL;
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const EXP_TIME = process.env.EXP_TIME;
 // prod
-const cookieConfig = { domain: '.doodleart.live', httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) };
+//const cookieConfig = { domain: '.doodleart.live', httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) };
 //dev
-//const cookieConfig = { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) };
+const cookieConfig = { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) };
 const app = express();
 
 app.use(helmet());
@@ -491,7 +491,7 @@ app.get('/api/v1/room/status/:roomId', authenticator, async (req, res) => {
             });
 
             if (sharedKey === actualKey?.sharedKey) {
-                res.status(200).json({ check: true });
+                res.status(200).json({ check: true, sharedKey: actualKey?.sharedKey });
                 return;
             }
             res.status(403).json({ check: false });
@@ -500,13 +500,17 @@ app.get('/api/v1/room/status/:roomId', authenticator, async (req, res) => {
             const data = await db.room.findUnique({
                 where: {
                     id: roomId
+                },
+                select: {
+                    adminId: true,
+                    sharedKey: true
                 }
             });
             // console.log(data);
             // console.log(authreq.user);
             if (data?.adminId === authreq.user.id) {
                 // console.log('Done!');
-                res.status(200).json({ check: true });
+                res.status(200).json({ check: true, sharedKey: data.sharedKey });
                 return;
             }
             res.status(403).json({ check: false });

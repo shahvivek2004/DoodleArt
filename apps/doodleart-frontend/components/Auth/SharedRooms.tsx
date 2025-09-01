@@ -13,6 +13,7 @@ export const SharedRooms = ({ id }: { id: string }) => {
     const router = useSearchParams();
     const [authorized, setAuthorized] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
+    const [sKey,setsKey] = useState<string>("");
     const sharedKey = router.get('sharedKey');
     const roter = useRouter();
     useEffect(() => {
@@ -21,6 +22,8 @@ export const SharedRooms = ({ id }: { id: string }) => {
                 const response = await axios.get(`${HTTP_URL}/api/v1/room/status/${id}?sharedKey=${sharedKey}`, { withCredentials: true });
                 if (response.data.check) {
                     setAuthorized(true);
+                    setsKey(response.data.sharedKey);
+                    console.log(response.data.sharedKey);
                 }
                 setLoading(false);
             } catch {
@@ -47,7 +50,7 @@ export const SharedRooms = ({ id }: { id: string }) => {
     }
 
     if (authorized) {
-        return <RoomCanvas roomId={id} />
+        return <RoomCanvas roomId={id} sharedKey={sKey} />
     }
 
     return (

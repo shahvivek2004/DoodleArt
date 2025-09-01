@@ -29,6 +29,7 @@ import { ShareRoomModal } from "./pop-ups/ShareRoomModal";
 import { Loader } from "../Fetch/Loader";
 import { AuthComp } from "../Fetch/AuthComp";
 import { Dropdown } from "./dropdown/Dropdown";
+import { Instruction } from "../Canvas/Instruction";
 
 type ProjectColor = "blue" | "green" | "purple" | "orange" | "red" | "teal";
 
@@ -63,6 +64,9 @@ export function DashBoard() {
     check: false,
     sharedKey: "",
     roomId: "",
+  });
+  const [instructionModal, setInstructionModal] = useState({
+    isOpen: false,
   });
 
   useEffect(() => {
@@ -104,7 +108,7 @@ export function DashBoard() {
         };
       });
 
-      console.log(transformedRooms);
+      //console.log(transformedRooms);
       // console.log(response.data);
       const recentRooms = transformedRooms.slice(-5);
       setFirstLetter(nfl.toUpperCase());
@@ -166,6 +170,10 @@ export function DashBoard() {
     }
 
     setData(updatedProjects);
+  };
+
+  const handleInstructionModalClose = () => {
+    setInstructionModal({ isOpen: false });
   };
 
   const handleShareRoomModalOpen = (key: string, id: number) => {
@@ -240,7 +248,7 @@ export function DashBoard() {
     return <AuthComp quitfunc={handleSignout} />;
   }
   return (
-    <div className="bg-[#0a0a19] min-h-screen">
+    <div className="bg-[#121212] min-h-screen">
       {/* Nav-bar */}
       <nav className="shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -274,7 +282,12 @@ export function DashBoard() {
                 />
               </div>
 
-              <button className="p-2 rounded-full text-gray-400 hover:text-gray-500">
+              <button
+                className="p-2 rounded-full text-gray-400 hover:text-gray-500"
+                onClick={() => {
+                  setInstructionModal({ isOpen: true });
+                }}
+              >
                 <HelpCircle className="h-6 w-6" />
               </button>
 
@@ -285,7 +298,7 @@ export function DashBoard() {
               <div className="ml-3 relative">
                 <div>
                   <button className="bg-gray-800 flex text-sm rounded-full focus:outline-none">
-                    <span className="h-8 w-8 rounded-full bg-[#5f00a3] flex items-center justify-center text-white font-medium">
+                    <span className="h-8 w-8 rounded-full bg-[#9a00e1] flex items-center justify-center text-white font-medium">
                       {firstLetter}
                     </span>
                   </button>
@@ -334,7 +347,12 @@ export function DashBoard() {
           {isMenuOpen && (
             <div className="pt-2 pb-3 space-y-1 md:hidden">
               <div className="flex items-center justify-around">
-                <button className="p-2 rounded-full text-gray-400 hover:text-gray-500 flex flex-col items-center">
+                <button
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-500 flex flex-col items-center"
+                  onClick={() => {
+                    setInstructionModal({ isOpen: true });
+                  }}
+                >
                   <HelpCircle className="h-6 w-6" />
                   <span className="text-xs mt-1">Help</span>
                 </button>
@@ -346,7 +364,7 @@ export function DashBoard() {
 
                 <div className="flex flex-col items-center">
                   <button className="bg-gray-800 flex text-sm rounded-full focus:outline-none">
-                    <span className="h-8 w-8 rounded-full bg-[#5f00a3] flex items-center justify-center text-white font-medium">
+                    <span className="h-8 w-8 rounded-full bg-[#9a00e1] flex items-center justify-center text-white font-medium">
                       {firstLetter}
                     </span>
                   </button>
@@ -437,7 +455,7 @@ export function DashBoard() {
               {activeTab === "recent" && (
                 <button
                   onClick={handleOpenCreateModal}
-                  className="inline-flex items-center cursor-pointer px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#5f00a3] hover:bg-[#5f00a3b4] focus:outline-none"
+                  className="inline-flex items-center cursor-pointer px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#9a00e1] hover:bg-[#ae00ff86] focus:outline-none"
                 >
                   <Plus className="mr-2 h-5 w-5" />
                   New Drawing
@@ -451,7 +469,7 @@ export function DashBoard() {
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="bg-[#191933] rounded-lg shadow overflow-visible"
+                  className="bg-[#232329] rounded-lg shadow overflow-visible"
                 >
                   {activeTab !== "trash" ? (
                     <button
@@ -475,7 +493,7 @@ export function DashBoard() {
                     </div>
 
                     <div className="mt-2 flex justify-between items-center gap-3">
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-400">
                         Created {timeAgo(project.createAt)}
                       </p>
 
@@ -495,7 +513,7 @@ export function DashBoard() {
 
               {/* Create new project grid */}
               {activeTab === "recent" && (
-                <div className="bg-[#191933] rounded-lg shadow overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+                <div className="bg-[#232329] rounded-lg shadow overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
                   <div className="text-center p-6">
                     <button
                       className="mx-auto h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-400 cursor-pointer"
@@ -506,7 +524,7 @@ export function DashBoard() {
                     <h3 className="mt-2 text-sm font-medium text-white">
                       Create new drawing
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-gray-400">
                       Start with a blank canvas
                     </p>
                   </div>
@@ -529,6 +547,11 @@ export function DashBoard() {
         sharedKey={isShareModalOpen.sharedKey}
         roomId={isShareModalOpen.roomId}
         onClose={handleShareRoomModalClose}
+      />
+
+      <Instruction
+        isOpen={instructionModal.isOpen}
+        onClose={handleInstructionModalClose}
       />
     </div>
   );

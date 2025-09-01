@@ -675,6 +675,7 @@ type Shape = {
     "type": "text";
     "x": number;
     "y": number;
+    "width": number;
     "content": string;
     "color": string;
     "strokeWidth": number;
@@ -788,21 +789,21 @@ function sanitizeShape(shape: Shape) {
         return null;
     }
 
-    const baseConstraints = {
-        strokeWidth: { min: 0, max: 50 },
-        coordinate: { min: -10000, max: 10000 },
-        size: { min: 0, max: 5000 },
-        fontSize: { min: 8, max: 200 }
-    };
+    // const baseConstraints = {
+    //     strokeWidth: { min: 0, max: 50 },
+    //     coordinate: { min: -10000, max: 10000 },
+    //     size: { min: 0, max: 5000 },
+    //     fontSize: { min: 8, max: 200 }
+    // };
 
     switch (shape.type) {
         case "rect":
             return {
                 type: "rect",
-                x: sanitizeNumber(shape.x, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                y: sanitizeNumber(shape.y, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                width: sanitizeNumber(shape.width, baseConstraints.size.min, baseConstraints.size.max),
-                height: sanitizeNumber(shape.height, baseConstraints.size.min, baseConstraints.size.max),
+                x: sanitizeNumber(shape.x),
+                y: sanitizeNumber(shape.y),
+                width: sanitizeNumber(shape.width),
+                height: sanitizeNumber(shape.height),
                 // color: sanitizeColor(shape.color),
                 // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
                 // bgColor: sanitizeColor(shape.bgColor),
@@ -813,10 +814,10 @@ function sanitizeShape(shape: Shape) {
         case "elip":
             return {
                 type: "elip",
-                centerX: sanitizeNumber(shape.centerX, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                centerY: sanitizeNumber(shape.centerY, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                radiusX: sanitizeNumber(shape.radiusX, baseConstraints.size.min, baseConstraints.size.max),
-                radiusY: sanitizeNumber(shape.radiusY, baseConstraints.size.min, baseConstraints.size.max),
+                centerX: sanitizeNumber(shape.centerX),
+                centerY: sanitizeNumber(shape.centerY),
+                radiusX: sanitizeNumber(shape.radiusX),
+                radiusY: sanitizeNumber(shape.radiusY),
                 // color: sanitizeColor(shape.color),
                 // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
                 // bgColor: sanitizeColor(shape.bgColor),
@@ -827,10 +828,10 @@ function sanitizeShape(shape: Shape) {
         case "line":
             return {
                 type: "line",
-                startX: sanitizeNumber(shape.startX, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                startY: sanitizeNumber(shape.startY, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                endX: sanitizeNumber(shape.endX, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                endY: sanitizeNumber(shape.endY, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
+                startX: sanitizeNumber(shape.startX),
+                startY: sanitizeNumber(shape.startY),
+                endX: sanitizeNumber(shape.endX),
+                endY: sanitizeNumber(shape.endY),
                 // color: sanitizeColor(shape.color),
                 // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
                 // lineDashX: sanitizeNumber(shape.lineDashX, 0, 100),
@@ -849,8 +850,8 @@ function sanitizeShape(shape: Shape) {
                 .map(coord => {
                     if (!coord || typeof coord !== 'object') return null;
                     return {
-                        x: sanitizeNumber(coord.x, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                        y: sanitizeNumber(coord.y, baseConstraints.coordinate.min, baseConstraints.coordinate.max)
+                        x: sanitizeNumber(coord.x),
+                        y: sanitizeNumber(coord.y)
                     };
                 })
                 .filter(coord => coord !== null);
@@ -871,8 +872,9 @@ function sanitizeShape(shape: Shape) {
         case "text":
             return {
                 type: "text",
-                x: sanitizeNumber(shape.x, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
-                y: sanitizeNumber(shape.y, baseConstraints.coordinate.min, baseConstraints.coordinate.max),
+                x: sanitizeNumber(shape.x),
+                y: sanitizeNumber(shape.y),
+                width: sanitizeNumber(shape.width),
                 content: sanitizeString(shape.content), // Limit text content
                 // color: sanitizeColor(shape.color),
                 // strokeWidth: sanitizeNumber(shape.strokeWidth, baseConstraints.strokeWidth.min, baseConstraints.strokeWidth.max),
@@ -1132,7 +1134,7 @@ wss.on('connection', async (ws, req) => {
                     ws.send(JSON.stringify({
                         type: "self",
                         chatId: chatRecord.id,
-                        message:finalMessage
+                        message: finalMessage
                     }));
 
                     // Broadcast to room members
@@ -1228,6 +1230,42 @@ wss.on('connection', async (ws, req) => {
                     });
 
                     roomMembers.forEach(user => {
+                        try {
+                            user.ws.send(broadcastMessage);
+                        } catch (error) {
+                            console.log("error: " + error);
+                        }
+                    });
+
+                } catch (error) {
+                    ws.send(JSON.stringify({
+                        type: "error",
+                        message: "Failed to save your message"
+                    }));
+                }
+            }
+
+            if (parsedData.type === "chat-delete") {
+                try {
+                    await db.chat.delete({
+                        where: {
+                            id: parsedData.chatId
+                        }
+                    });
+
+                    const roomMembers = users.filter(user =>
+                        user.rooms.includes(roomId) &&
+                        user.ws.readyState === WebSocket.OPEN && user.userId !== userId
+                    );
+
+                    const broadcastMessage = JSON.stringify({
+                        type: "chat-delete",
+                        chatId: parsedData.chatId,
+                        userId: userId,
+                        roomId: roomId
+                    });
+
+                     roomMembers.forEach(user => {
                         try {
                             user.ws.send(broadcastMessage);
                         } catch (error) {

@@ -52,12 +52,12 @@ export function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomMo
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Dark overlay */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-70"
+        className="absolute inset-0 bg-[#121212] bg-opacity-70"
         onClick={onClose}
       ></div>
       
       {/* Modal content */}
-      <div className="bg-[#191933] rounded-lg shadow-xl p-6 w-full max-w-md z-10 relative">
+      <div className="bg-[#232329] rounded-lg shadow-xl p-6 w-full max-w-md z-10 relative">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-white">Create New Drawing</h3>
           <button 
@@ -79,7 +79,7 @@ export function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomMo
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               placeholder="Enter room name"
-              className="w-full px-4 py-2 bg-[#0a0a19] border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#5f00a3] focus:border-transparent"
+              className="w-full px-4 py-2 bg-[#0a0a19] border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#9a00e1] focus:border-transparent"
               autoFocus
             />
             {error && (
@@ -98,7 +98,7 @@ export function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomMo
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium rounded-md text-white bg-[#5f00a3] hover:bg-[#5f00a3b4] focus:outline-none disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium rounded-md text-white bg-[#9a00e1] hover:bg-[#ae00ff8f] focus:outline-none disabled:opacity-50"
               disabled={isLoading}
             >
               {isLoading ? "Creating..." : "Create Drawing"}

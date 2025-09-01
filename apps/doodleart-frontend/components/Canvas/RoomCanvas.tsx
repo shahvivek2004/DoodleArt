@@ -165,7 +165,7 @@ import { useEffect, useState } from "react";
 import { Canvas } from "./Canvas";
 import { Loader } from "../Fetch/Loader";
 
-export function RoomCanvas({ roomId }: { roomId: string }) {
+export function RoomCanvas({ roomId, sharedKey }: { roomId: string, sharedKey: string }) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -301,7 +301,7 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
 
     return (
         <div>
-            <Canvas roomId={roomId} socket={socket} />
+            <Canvas roomId={roomId} socket={socket} sharedKey={sharedKey} />
         </div>
     );
 }

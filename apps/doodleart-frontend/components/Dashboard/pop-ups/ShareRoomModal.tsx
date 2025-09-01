@@ -29,17 +29,17 @@ export function ShareRoomModal({ isOpen, onClose, sharedKey, roomId }: shareRoom
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
             {/* Dark overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-70" onClick={onClose}>
+            <div className="absolute inset-0 bg-[#121212] bg-opacity-70 cursor-default" onClick={onClose}>
 
             </div>
 
             {/* Modal content */}
-            <div className="bg-[#191933] rounded-lg shadow-xl p-6 w-full max-w-md z-10 relative">
+            <div className="bg-[#232329] rounded-lg shadow-xl p-6 w-full max-w-md z-10 relative cursor-default">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-white">Copy the Sharable Link</h3>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-gray-400 hover:text-white transition-colors cursor-pointer"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -67,7 +67,7 @@ export function ShareRoomModal({ isOpen, onClose, sharedKey, roomId }: shareRoom
                         <button
                             onClick={handleCopy}
                             type="button"
-                            className="shrink-0 inline-flex items-center justify-center py-3 px-4 text-sm font-medium text-white bg-[#5f00a3] hover:bg-[#5f00a3b4] rounded-e-lg focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-purple-800 border border-purple-700 "
+                            className="cursor-pointer shrink-0 inline-flex items-center justify-center py-3 px-4 text-sm font-medium text-white bg-[#5f00a3] hover:bg-[#5f00a3b4] rounded-e-lg focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-purple-800 border border-purple-700 "
                         >
                             {copied ? (
                                 <Check className="w-4 h-4 text-green-300" />
