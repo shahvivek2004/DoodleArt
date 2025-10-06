@@ -1,4 +1,6 @@
-import { SharedRooms } from "@/components/Auth/SharedRooms";
+
+//import { SharedRooms } from "@/components/Auth/SharedRooms";
+import { CanvasPg } from "@/components/Auth/CanvasPage";
 
 interface PageProps {
   params: Promise<{
@@ -8,6 +10,9 @@ interface PageProps {
 
 export default async function CanvasPage({ params }: PageProps) {
   const { roomId } = await params;
+
   // console.log(roomId);
-  return <SharedRooms id={roomId} />;
+  // return <SharedRooms id={roomId} />;
+
+  return <CanvasPg roomId={roomId}/>
 }

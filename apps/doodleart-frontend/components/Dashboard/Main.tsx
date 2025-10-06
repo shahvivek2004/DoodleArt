@@ -52,6 +52,7 @@ type TabType = "recent" | "alldraw" | "trash" | "starred" | "logout";
 export function DashBoard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [abuseLoad, setAbuseLoad] = useState(false);
   const [isAuthenticated, setIsAuthenticatd] = useState(false);
   const [firstLetter, setFirstLetter] = useState("A");
   const [activeTab, setActiveTab] = useState<TabType>("recent");
@@ -207,6 +208,7 @@ export function DashBoard() {
   // Handle Signout
   const handleSignout = async () => {
     // setActiveTab('logout');
+    setAbuseLoad(true);
     try {
       await axios.post(
         `${HTTP_URL}/api/v1/auth/signout`,
@@ -217,6 +219,8 @@ export function DashBoard() {
       router.push("/signin");
     } catch {
       alert("Wait for a second!..");
+    } finally {
+      setAbuseLoad(false);
     }
   };
 
@@ -248,9 +252,9 @@ export function DashBoard() {
     return <AuthComp quitfunc={handleSignout} />;
   }
   return (
-    <div className="bg-[#121212] min-h-screen">
+    <div className="bg-[#121212] h-screen flex flex-col overflow-hidden ">
       {/* Nav-bar */}
-      <nav className="shadow-sm">
+      <nav className="shadow-sm flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             {/* Title and Logo */}
@@ -380,179 +384,206 @@ export function DashBoard() {
       <div className="border-t border-gray-700"></div>
 
       {/* Main component */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-wrap md:flex-nowrap">
-          {/* Left sidebar */}
-          <div className="w-full md:w-64 mb-6 md:mb-0 md:mr-8">
-            <nav className="space-y-1">
-              <button
-                onClick={() => {
-                  setActiveTab("recent");
-                  handleActiveTab("recent");
-                }}
-                className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "recent" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
-              >
-                <Clock className="mr-3 h-5 w-5" />
-                <span>Recent</span>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("starred");
-                  handleActiveTab("starred");
-                }}
-                className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "starred" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
-              >
-                <Star className="mr-3 h-5 w-5" />
-                <span>Favourites</span>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("alldraw");
-                  handleActiveTab("alldraw");
-                }}
-                className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "alldraw" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
-              >
-                <FolderOpen className="mr-3 h-5 w-5" />
-                <span>All Drawings</span>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("trash");
-                  handleActiveTab("trash");
-                }}
-                className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "trash" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
-              >
-                <Trash2 className="mr-3 h-5 w-5" />
-                <span>Trash</span>
-              </button>
-              <div className="pt-4 border-t border-gray-700">
+      <div className="flex-1 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full">
+          <div className="flex flex-col md:flex-row mx-auto h-full">
+            {/* Left sidebar */}
+            <div className="w-full md:w-64 mb-6 md:mb-0 md:mr-8 flex-shrink-0">
+              <nav className="space-y-1">
                 <button
-                  onClick={handleSignout}
-                  className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-500 ${activeTab === "logout" ? "bg-[#ff000047] text-[#e3bcff]" : "hover:bg-[#ff000047] "}`}
+                  onClick={() => {
+                    setActiveTab("recent");
+                    handleActiveTab("recent");
+                  }}
+                  className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "recent" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
                 >
-                  <LogOut className="mr-3 h-5 w-5" />
-                  <span>Log out</span>
+                  <Clock className="mr-3 h-5 w-5" />
+                  <span>Recent</span>
                 </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("starred");
+                    handleActiveTab("starred");
+                  }}
+                  className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "starred" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
+                >
+                  <Star className="mr-3 h-5 w-5" />
+                  <span>Favourites</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("alldraw");
+                    handleActiveTab("alldraw");
+                  }}
+                  className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "alldraw" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
+                >
+                  <FolderOpen className="mr-3 h-5 w-5" />
+                  <span>All Drawings</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("trash");
+                    handleActiveTab("trash");
+                  }}
+                  className={`w-full cursor-pointer flex items-center px-3 py-2 text-sm font-medium rounded-md ${activeTab === "trash" ? "bg-[#5f00a353] text-[#e3bcff]" : "hover:bg-[#5f00a353] text-white"}`}
+                >
+                  <Trash2 className="mr-3 h-5 w-5" />
+                  <span>Trash</span>
+                </button>
+                <div className="pt-4 border-t border-gray-700">
+                  <button
+                    disabled={abuseLoad}
+                    onClick={handleSignout}
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-500 ${abuseLoad ? "bg- cursor-not-allowed" : "cursor-pointer"} ${activeTab === "logout" ? "bg-[#ff000047] text-[#e3bcff]" : "hover:bg-[#ff000047] "}`}
+                  >
+                    <LogOut className="mr-3 h-5 w-5" />
+                    <span>Log out</span>
+                  </button>
+                </div>
+              </nav>
+            </div>
+
+            {/* Main content area */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              {/* Button and Active tab heading */}
+              <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                <h1 className="text-2xl font-bold text-white px-4 py-2">
+                  {activeTab === "recent"
+                    ? "Recent Drawings"
+                    : activeTab === "starred"
+                      ? "Starred Drawings"
+                      : activeTab === "alldraw"
+                        ? "All Drawings"
+                        : activeTab === "trash"
+                          ? "Trash"
+                          : "Drawings"}
+                </h1>
+                {activeTab === "recent" && (
+                  <button
+                    onClick={handleOpenCreateModal}
+                    className="inline-flex items-center cursor-pointer px-2 md:px-4 py-2 border border-transparent text-xs md:text-sm font-medium rounded-md shadow-sm text-white bg-[#9a00e1] hover:bg-[#ae00ff86] focus:outline-none"
+                  >
+                    <Plus className="mr-2 h-5 w-5" />
+                    New Drawing
+                  </button>
+                )}
               </div>
-            </nav>
-          </div>
 
-          {/* Main content area */}
-          <div className="flex-1">
-            {/* Button and Active tab heading */}
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-white px-4 py-2">
-                {activeTab === "recent"
-                  ? "Recent Drawings"
-                  : activeTab === "starred"
-                    ? "Starred Drawings"
-                    : activeTab === "alldraw"
-                      ? "All Drawings"
-                      : activeTab === "trash"
-                        ? "Trash"
-                        : "Drawings"}
-              </h1>
-              {activeTab === "recent" && (
-                <button
-                  onClick={handleOpenCreateModal}
-                  className="inline-flex items-center cursor-pointer px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#9a00e1] hover:bg-[#ae00ff86] focus:outline-none"
-                >
-                  <Plus className="mr-2 h-5 w-5" />
-                  New Drawing
-                </button>
-              )}
-            </div>
-
-            {/* Grid of projects */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Projects */}
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="bg-[#232329] rounded-lg shadow overflow-visible"
-                >
-                  {activeTab !== "trash" ? (
-                    <button
-                      onClick={() => {
-                        router.push(`/canvas/${project.id}`);
-                      }}
-                      className="w-full cursor-pointer"
+              {/* Grid of projects */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                  {/* Projects */}
+                  {projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="bg-[#232329] rounded-lg shadow overflow-visible"
                     >
-                      <ProjectThumbnail color={project.thumbnail} />
-                    </button>
-                  ) : (
-                    <button className="w-full">
-                      <ProjectThumbnail color={project.thumbnail} />
-                    </button>
+                      {activeTab !== "trash" ? (
+                        <button
+                          onClick={() => {
+                            router.push(`/canvas/${project.id}?sharedKey=${project.sharedKey}`);
+                          }}
+                          className="w-full cursor-pointer"
+                        >
+                          <ProjectThumbnail color={project.thumbnail} />
+                        </button>
+                      ) : (
+                        <button className="w-full">
+                          <ProjectThumbnail color={project.thumbnail} />
+                        </button>
+                      )}
+                      <div className="p-4">
+                        <div className="flex justify-between items-start">
+                          <h3 className="text-lg font-medium text-white">
+                            {project.title}
+                          </h3>
+                        </div>
+
+                        <div className="mt-2 flex justify-between items-center gap-3">
+                          <p className="text-sm text-gray-400">
+                            Created {timeAgo(project.createAt)}
+                          </p>
+
+                          <Dropdown
+                            roomId={project.id}
+                            sharedKey={project.sharedKey}
+                            isFavourite={project.isFavourite}
+                            activeTab={activeTab}
+                            toggleFavorite={toggleFavorite}
+                            shareRoomModal={handleShareRoomModalOpen}
+                            trashCollection={handleTrash}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Create new project grid */}
+                  {activeTab === "recent" && (
+                    <div className="bg-[#232329] rounded-lg shadow overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      <div className="text-center p-6">
+                        <button
+                          className="mx-auto h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-400 cursor-pointer"
+                          onClick={handleOpenCreateModal}
+                        >
+                          <Plus className="h-6 w-6 text-gray-600" />
+                        </button>
+                        <h3 className="mt-2 text-sm font-medium text-white">
+                          Create new drawing
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-400">
+                          Start with a blank canvas
+                        </p>
+                      </div>
+                    </div>
                   )}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-medium text-white">
-                        {project.title}
-                      </h3>
-                    </div>
-
-                    <div className="mt-2 flex justify-between items-center gap-3">
-                      <p className="text-sm text-gray-400">
-                        Created {timeAgo(project.createAt)}
-                      </p>
-
-                      <Dropdown
-                        roomId={project.id}
-                        sharedKey={project.sharedKey}
-                        isFavourite={project.isFavourite}
-                        activeTab={activeTab}
-                        toggleFavorite={toggleFavorite}
-                        shareRoomModal={handleShareRoomModalOpen}
-                        trashCollection={handleTrash}
-                      />
-                    </div>
-                  </div>
                 </div>
-              ))}
-
-              {/* Create new project grid */}
-              {activeTab === "recent" && (
-                <div className="bg-[#232329] rounded-lg shadow overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <button
-                      className="mx-auto h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-400 cursor-pointer"
-                      onClick={handleOpenCreateModal}
-                    >
-                      <Plus className="h-6 w-6 text-gray-600" />
-                    </button>
-                    <h3 className="mt-2 text-sm font-medium text-white">
-                      Create new drawing
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-400">
-                      Start with a blank canvas
-                    </p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
+
+          {/* Create Room Modal (pop-up) */}
+          <CreateRoomModal
+            isOpen={isCreateModalOpen}
+            onClose={handleCloseCreateModal}
+            onRoomCreated={handleRoomCreated}
+          />
+
+          <ShareRoomModal
+            isOpen={isShareModalOpen.check}
+            sharedKey={isShareModalOpen.sharedKey}
+            roomId={isShareModalOpen.roomId}
+            onClose={handleShareRoomModalClose}
+          />
+
+          <Instruction
+            isOpen={instructionModal.isOpen}
+            onClose={handleInstructionModalClose}
+          />
         </div>
+        <style jsx>{`
+          .custom-scrollbar {
+            scrollbar-gutter: stable;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #27272a;
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #52525b;
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #71717a;
+          }
+          .custom-scrollbar::-webkit-scrollbar-corner {
+            background: #27272a;
+          }
+        `}</style>
       </div>
-
-      {/* Create Room Modal (pop-up) */}
-      <CreateRoomModal
-        isOpen={isCreateModalOpen}
-        onClose={handleCloseCreateModal}
-        onRoomCreated={handleRoomCreated}
-      />
-
-      <ShareRoomModal
-        isOpen={isShareModalOpen.check}
-        sharedKey={isShareModalOpen.sharedKey}
-        roomId={isShareModalOpen.roomId}
-        onClose={handleShareRoomModalClose}
-      />
-
-      <Instruction
-        isOpen={instructionModal.isOpen}
-        onClose={handleInstructionModalClose}
-      />
     </div>
   );
 }

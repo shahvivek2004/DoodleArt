@@ -422,22 +422,40 @@ app.post('/api/v1/user/room', authenticator, async (req: Request, res: Response)
 // Get room related chats by room Id
 app.get('/api/v1/user/chats/:roomId', authenticator, async (req, res) => {
     const roomId = Number(req.params.roomId);
+    const authreq = req as authRequest;
+    const sharedKey = (req.query.sharedKey);
+
     try {
-        const messages = await db.chat.findMany({
+        // console.log(sharedKey);
+        const data = await db.room.findUnique({
             where: {
-                roomId: roomId
-            },
-            orderBy: {
-                createAt: "asc"
+                id: roomId
             },
             select: {
-                id: true,
-                message: true
-            },
-            take: 2000
+                adminId: true,
+                sharedKey: true
+            }
         });
+        // console.log(data?.sharedKey);
+        if (sharedKey === data?.sharedKey || authreq.user.id === data?.adminId) {
+            const messages = await db.chat.findMany({
+                where: {
+                    roomId: roomId
+                },
+                orderBy: {
+                    createAt: "asc"
+                },
+                select: {
+                    id: true,
+                    message: true
+                },
+                take: 2000
+            });
 
-        res.status(200).json({ messages });
+            res.status(200).json({ messages });
+        } else {
+            res.status(403).json({ message: "Unauthorized Access!" });
+        }
     } catch (error) {
         res.status(500).json({ message: "Internal Server Error!" });
     }
