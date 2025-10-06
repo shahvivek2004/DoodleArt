@@ -74,7 +74,7 @@ export function RoomCanvas({
           }
         };
 
-        ws.onerror = (error) => {
+        ws.onerror = () => {
           //console.error("WebSocket error:", error);
           setError("Failed to connect to server");
           setIsLoading(false);
@@ -117,7 +117,7 @@ export function RoomCanvas({
     return () => {
       cleanupSocket();
     };
-  }, [roomId]);
+  }, [roomId, sharedKey]);
 
   if (isLoading) {
     return <Loader />;

@@ -216,7 +216,7 @@ export function Canvas({
         g.destroyMouseHandlers();
       };
     }
-  }, [bgcanvasRef, roomId, socket]);
+  }, [bgcanvasRef, roomId, socket, sharedKey]);
 
   return (
     <div

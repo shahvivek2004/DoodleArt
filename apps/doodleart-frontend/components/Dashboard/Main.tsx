@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { CreateRoomModal } from "./pop-ups/CreateRoomModal"; // Import the modal component
 import { useRouter } from "next/navigation";
@@ -74,9 +74,29 @@ export function DashBoard() {
     fetchRooms();
   }, []);
 
+  const handleActiveTab = useCallback(
+    (currTab: string) => {
+      if (currTab == "recent") {
+        const filtered = data.filter((p) => !p.isInTrash);
+        const finalFiltered = filtered.slice(-5);
+        setProjects(finalFiltered);
+      } else if (currTab == "starred") {
+        const filtered = data.filter((p) => p.isFavourite && !p.isInTrash);
+        setProjects(filtered);
+      } else if (currTab == "alldraw") {
+        const filtered = data.filter((p) => !p.isInTrash);
+        setProjects(filtered);
+      } else if (currTab == "trash") {
+        const filtered = data.filter((p) => p.isInTrash);
+        setProjects(filtered);
+      }
+    },
+    [data]
+  ); // Only recreate when data changes
+
   useEffect(() => {
     handleActiveTab(activeTab);
-  }, [data, activeTab]);
+  }, [activeTab, handleActiveTab]);
 
   // Function to fetch rooms
   async function fetchRooms() {
@@ -128,23 +148,23 @@ export function DashBoard() {
     }
   }
 
-  const handleActiveTab = (currTab: string) => {
-    if (currTab == "recent") {
-      const filltered = data.filter((p) => !p.isInTrash);
-      const finalFilltered = filltered.slice(-5);
-      setProjects(finalFilltered);
-    } else if (currTab == "starred") {
-      const filltered = data.filter((p) => p.isFavourite && !p.isInTrash);
-      setProjects(filltered);
-    } else if (currTab == "alldraw") {
-      const filltered = data.filter((p) => !p.isInTrash);
-      setProjects(filltered);
-    } else if (currTab == "trash") {
-      const filltered = data.filter((p) => p.isInTrash);
-      setProjects(filltered);
-    }
-    //console.log(projects);
-  };
+  // const handleActiveTab = (currTab: string) => {
+  //   if (currTab == "recent") {
+  //     const filltered = data.filter((p) => !p.isInTrash);
+  //     const finalFilltered = filltered.slice(-5);
+  //     setProjects(finalFilltered);
+  //   } else if (currTab == "starred") {
+  //     const filltered = data.filter((p) => p.isFavourite && !p.isInTrash);
+  //     setProjects(filltered);
+  //   } else if (currTab == "alldraw") {
+  //     const filltered = data.filter((p) => !p.isInTrash);
+  //     setProjects(filltered);
+  //   } else if (currTab == "trash") {
+  //     const filltered = data.filter((p) => p.isInTrash);
+  //     setProjects(filltered);
+  //   }
+  //   //console.log(projects);
+  // };
 
   const toggleFavorite = async (roomId: number) => {
     const updatedProjects = data.map((project) =>
@@ -481,7 +501,9 @@ export function DashBoard() {
                       {activeTab !== "trash" ? (
                         <button
                           onClick={() => {
-                            router.push(`/canvas/${project.id}?sharedKey=${project.sharedKey}`);
+                            router.push(
+                              `/canvas/${project.id}?sharedKey=${project.sharedKey}`
+                            );
                           }}
                           className="w-full cursor-pointer"
                         >
