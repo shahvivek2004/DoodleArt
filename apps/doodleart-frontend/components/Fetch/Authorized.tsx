@@ -1,6 +1,6 @@
 export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
   return (
-    <div className="bg-[#0a0a19] min-h-screen flex items-center justify-center">
+    <div className="bg-[#121212] min-h-screen flex items-center justify-center">
       <div className="text-center space-y-6 p-8">
         {/* Icon */}
         <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
@@ -33,7 +33,7 @@ export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
         {/* Button */}
         <button
           onClick={quitfunc}
-          className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0a0a19]"
+          className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0a0a19] cursor-pointer"
         >
           <svg
             className="w-4 h-4"

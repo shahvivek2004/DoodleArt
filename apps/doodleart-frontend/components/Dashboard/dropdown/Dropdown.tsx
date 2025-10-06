@@ -29,7 +29,7 @@ export const Dropdown = ({
     } else if (type === "t") {
       trashCollection(roomId);
     } else if (type === "d") {
-
+      // permanent delete
     }
     setIsOpen(false);
   };
@@ -111,7 +111,7 @@ export const Dropdown = ({
               <History size={16} />
               Restore
             </button>
-            <hr className="my-1 border-gray-600" />
+            {/* <hr className="my-1 border-gray-600" /> */}
 
             {/* Permanent Delete */}
             {/* <button

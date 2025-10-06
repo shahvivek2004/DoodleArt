@@ -6,7 +6,7 @@ export const AuthComp = (
         quitfunc: () => void
     }) => {
     return (
-        <div className="bg-[#0a0a19] min-h-screen flex items-center justify-center">
+        <div className="bg-[#121212] min-h-screen flex items-center justify-center">
             <div className="text-center space-y-6 p-8">
                 {/* Icon */}
                 <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
@@ -26,7 +26,7 @@ export const AuthComp = (
                 </div>
 
                 {/* Button */}
-                <button onClick={quitfunc} className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0a0a19]">
+                <button onClick={quitfunc} className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0a0a19] cursor-pointer">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>

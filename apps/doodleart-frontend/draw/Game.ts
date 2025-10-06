@@ -1,429 +1,3 @@
-// My own version 🥹🥹
-// ===================================================================
-// Game.ts
-// import { Tool } from "@/components/Canvas/Canvas";
-// import { getExistingShapes } from "./Http";
-// import { TextBox } from "./TextBox";
-
-// type Shape = {
-//     type: "rect";
-//     x: number;
-//     y: number;
-//     width: number;
-//     height: number;
-// } | {
-//     type: "elip";
-//     centerX: number;
-//     centerY: number;
-//     radiusX: number;
-//     radiusY: number;
-// } | {
-//     type: "line";
-//     startX: number;
-//     startY: number;
-//     endX: number;
-//     endY: number;
-// } | {
-//     type: "pencil";
-//     pencilCoords: Array<{ x: number, y: number }>;
-// } | {
-//     type: "text";
-//     x: number;
-//     y: number;
-//     content: string;
-// } | {
-//     type: "cursor";
-// } | {
-//     type: "grab";
-// };
-
-// export class Game {
-//     private scale: number;
-//     private activeTextBox: TextBox | undefined;
-//     private canvas: HTMLCanvasElement;
-//     private context: CanvasRenderingContext2D;
-//     private existingShapes: Shape[];
-//     private roomId: string;
-//     private clicked: boolean;
-//     private startX = 0;
-//     private startY = 0;
-//     private panX: number;
-//     private panY: number;
-//     private lastMouseX = 0;
-//     private lastMouseY = 0;
-//     private selectedTool = "cursor";
-//     private pencilCoords: Array<{ x: number, y: number }> = [];
-//     private isDrawing = false;
-//     private lastSavedPan: { x: number, y: number } = { x: 0, y: 0 };
-//     private saveTimeout: number | undefined;
-//     socket: WebSocket;
-//     private onToolChange: ((tool: Tool) => void) | null = null;
-
-//     constructor(
-//         canvas: HTMLCanvasElement,
-//         roomId: string,
-//         socket: WebSocket,
-//         onToolChange?: (tool: Tool) => void
-//     ) {
-//         console.log("constructor called!");
-//         this.canvas = canvas;
-//         this.context = canvas.getContext('2d')!;
-//         this.context.lineWidth = 3;
-//         this.existingShapes = [];
-//         this.roomId = roomId;
-//         this.socket = socket;
-//         this.clicked = false;
-//         this.scale = 1;
-//         this.panX = Number(localStorage.getItem("px")) || 0;
-//         this.panY = Number(localStorage.getItem("py")) || 0;
-//         this.onToolChange = onToolChange || null;
-
-//         this.init();
-
-//         this.initHandlers();
-
-//         this.initMouseHandlers();
-//         console.log("constructor init!");
-//     }
-
-//     setTool(tool: Tool) {
-//         console.log("setTool called with:", tool);
-
-//         // Store current pan values to prevent them from being reset
-//         const currentPanX = this.panX;
-//         const currentPanY = this.panY;
-
-//         this.selectedTool = tool;
-
-//         // Restore pan values immediately after setting tool
-//         this.panX = currentPanX;
-//         this.panY = currentPanY;
-
-//         // Only clear canvas if we're not in the middle of other operations
-//         if (!this.isDrawing && !this.clicked) {
-//             this.clearCanvas();
-//         }
-
-//         this.isDrawing = false;
-//         this.clicked = false;
-//         this.pencilCoords = [];
-
-//         console.log("setTool completed, panX:", this.panX, "panY:", this.panY);
-//     }
-
-//     async init() {
-//         console.log("init called");
-//         try {
-//             this.existingShapes = await getExistingShapes(this.roomId);
-//         } catch (error) {
-//             console.error("Failed to load existing shapes:", error);
-//             this.existingShapes = [];
-//         }
-//         this.clearCanvas();
-//     }
-
-//     initHandlers() {
-//         console.log("initHandlers called!");
-
-//         let redrawTimeout: NodeJS.Timeout | null = null;
-
-//         this.socket.onmessage = (event) => {
-//             const message = JSON.parse(event.data);
-
-//             if (message.type === "chat") {
-//                 const parsedShape = JSON.parse(message.message);
-//                 this.panX = Number((localStorage.getItem("px")));
-//                 this.panY = Number((localStorage.getItem("py")));
-//                 console.log("🔵 BEFORE push/clearCanvas → panX:", this.panX, "panY:", this.panY);
-//                 this.existingShapes.push(parsedShape);
-//                 console.log("🟡 AFTER push → panX:", this.panX, "panY:", this.panY);
-//                 if (redrawTimeout) clearTimeout(redrawTimeout);
-//                 redrawTimeout = setTimeout(() => {
-//                     this.clearCanvas();
-//                 }, 10);
-//                 console.log("🔴 AFTER clearCanvas → panX:", this.panX, "panY:", this.panY);
-//             }
-//         };
-
-//     }
-
-//     getCanvasCoordinates(clientX: number, clientY: number) {
-//         return {
-//             x: clientX - this.canvas.getBoundingClientRect().left,
-//             y: clientY - this.canvas.getBoundingClientRect().top
-//         };
-//     }
-
-//     initMouseHandlers() {
-//         console.log("initMouseHandlers called");
-//         this.canvas.addEventListener('mousedown', this.mouseDownHandler);
-//         this.canvas.addEventListener('mouseup', this.mouseUpHandler);
-//         this.canvas.addEventListener('mousemove', this.mouseMoveHandler);
-//     }
-
-//     destroyMouseHandlers() {
-//         // console.log("destroyMouseHandlers Called!");
-//         this.canvas.removeEventListener('mousedown', this.mouseDownHandler);
-//         this.canvas.removeEventListener('mouseup', this.mouseUpHandler);
-//         this.canvas.removeEventListener('mousemove', this.mouseMoveHandler);
-//     }
-
-//     registerToolChangeCallback(callback: (tool: Tool) => void) {
-//         // console.log("registerToolChangeCallback called!");
-//         this.onToolChange = callback;
-//     }
-
-//     clearCanvas() {
-//         // console.trace("clearCanvas got called!");
-//         // console.log(`panx : ${this.panX} | pany : ${this.panY}`);
-//         // this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
-//         // this.context.clearRect(-this.panX / this.scale, -this.panY / this.scale, this.canvas.width/this.scale, this.canvas.height/this.scale);
-//         // this.context.fillStyle = "rgba(10, 10, 25)";
-//         // this.context.fillRect(-this.panX / this.scale, -this.panY / this.scale, this.canvas.width/this.scale, this.canvas.height/this.scale);
-//         this.context.save();
-//         this.context.setTransform(1, 0, 0, 1, 0, 0);
-//         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-//         this.context.fillStyle = "rgba(10, 10, 25)";
-//         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-//         this.context.restore();
-
-//         this.context.save();
-//         this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
-
-//         this.existingShapes.map((shape) => {
-//             if (shape.type === "rect") {
-//                 // If the shape is a rectangle, draw its border
-//                 this.context.strokeStyle = "rgba(255,255,255)"  // white color for border
-//                 this.context.strokeRect(shape.x, shape.y, shape.width, shape.height);
-
-//             } else if (shape.type === "elip") {
-//                 this.context.beginPath();
-//                 this.context.ellipse(shape.centerX, shape.centerY, Math.abs(shape.radiusX), Math.abs(shape.radiusY), 0, 0, 2 * Math.PI);
-//                 this.context.stroke();
-//                 this.context.closePath();
-//             } else if (shape.type === "line") {
-//                 this.context.beginPath();
-//                 this.context.moveTo(shape.startX, shape.startY);
-//                 this.context.lineTo(shape.endX, shape.endY);
-//                 this.context.stroke();
-//                 this.context.closePath();
-//             } else if (shape.type === "pencil") {
-//                 if (shape.pencilCoords.length > 0) {
-//                     this.context.beginPath();
-//                     this.context.lineCap = "round";
-//                     this.context.lineJoin = "round";
-
-//                     // Move to the first point
-//                     this.context.moveTo(shape.pencilCoords[0].x, shape.pencilCoords[0].y);
-
-//                     // Draw lines to all subsequent points
-//                     for (let i = 1; i < shape.pencilCoords.length; i++) {
-//                         this.context.lineTo(shape.pencilCoords[i].x, shape.pencilCoords[i].y);
-//                     }
-//                     this.context.stroke();
-//                     this.context.closePath();
-//                 }
-//             } else if (shape.type === "text") {
-//                 this.context.save();
-//                 this.context.font = '20px sans-serif';
-//                 this.context.fillStyle = 'white';
-//                 this.context.fillText(shape.content, shape.x, shape.y + 20); // Add offset for baseline
-//                 this.context.restore();
-//             }
-//         })
-//     }
-
-//     mouseDownHandler = (e: MouseEvent) => {
-//         //console.log("mousedown called");
-//         this.clicked = true;
-//         const canvasCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
-//         this.startX = canvasCoords.x;
-//         this.startY = canvasCoords.y;
-
-//         if (this.selectedTool === "pencil") {
-//             //console.log("mousedown if->pencil called")
-
-//             this.isDrawing = true;
-//             this.pencilCoords = [];
-//             this.pencilCoords.push({ x: canvasCoords.x, y: canvasCoords.y });
-//             this.context.beginPath();
-//             this.context.lineCap = "round";
-//             this.context.lineJoin = "round";
-//             this.context.moveTo(canvasCoords.x - this.panX, canvasCoords.y - this.panY);
-//             return;
-//         }
-
-//         if (this.selectedTool === "grab") {
-//             //console.log("mousedown if->grab called");
-//             this.lastMouseX = canvasCoords.x;
-//             this.lastMouseY = canvasCoords.y;
-//             return;
-//         }
-//     }
-
-//     mouseMoveHandler = (e: MouseEvent) => {
-//         // console.log("mousemove called");
-//         const canvasCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
-
-//         if (this.clicked) {
-//             // console.log("mousemove clicked called");
-//             // Convert client coordinates to canvas coordinates
-//             const width = canvasCoords.x - this.startX;
-//             const height = canvasCoords.y - this.startY;
-//             const selectedTool = this.selectedTool;
-
-//             if (selectedTool === "grab") {
-//                 //console.log("mousemove clicked if->grab called");
-//                 const deltaX = canvasCoords.x - this.lastMouseX;
-//                 const deltaY = canvasCoords.y - this.lastMouseY;
-
-//                 this.panX += deltaX;
-//                 this.panY += deltaY;
-
-//                 this.lastMouseX = canvasCoords.x;
-//                 this.lastMouseY = canvasCoords.y;
-//             }
-
-//             if (selectedTool !== "pencil") {
-//                 //console.log(`mousemove clicked ${selectedTool} called`);
-//                 this.clearCanvas();
-//             }
-
-//             this.context.strokeStyle = "rgba(255, 255, 255)";
-
-//             if (selectedTool === "rect") {
-//                 this.context.strokeRect(this.startX - this.panX, this.startY - this.panY, width, height);
-
-//             } else if (selectedTool === "elip") {
-
-//                 const centerX = (((this.startX + canvasCoords.x) / 2));
-//                 const centerY = (((this.startY + canvasCoords.y) / 2));
-//                 const radiusX = Math.abs(width / 2);
-//                 const radiusY = Math.abs(height / 2);
-//                 this.context.beginPath();
-//                 this.context.ellipse(centerX - this.panX, centerY - this.panY, Math.abs(radiusX), Math.abs(radiusY), 0, 0, 2 * Math.PI);
-//                 this.context.stroke();
-//                 this.context.closePath();
-//             } else if (selectedTool === "line") {
-//                 this.context.beginPath();
-//                 this.context.moveTo(this.startX - this.panX, this.startY - this.panY);
-//                 this.context.lineTo(canvasCoords.x - this.panX, canvasCoords.y - this.panY);
-//                 this.context.stroke();
-//                 this.context.closePath();
-//             } else if (selectedTool === "pencil") {
-//                 if (this.isDrawing) {
-//                     // Special handling for freehand drawing
-//                     this.pencilCoords.push({ x: canvasCoords.x, y: canvasCoords.y });
-
-//                     // Draw the line segment directly without clearing canvas
-//                     this.context.lineTo(canvasCoords.x - this.panX, canvasCoords.y - this.panY);
-//                     this.context.stroke();
-//                 }
-//             }
-//         }
-//     }
-
-//     mouseUpHandler = (e: MouseEvent) => {
-//         //console.log("mouseup called");
-//         if (!this.clicked) return;
-//         this.clicked = false;
-
-//         const canvasCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
-//         const width = canvasCoords.x - this.startX;
-//         const height = canvasCoords.y - this.startY;
-
-//         const selectedTool = this.selectedTool;
-//         let shape: Shape | null = null;
-
-//         if (selectedTool === "rect") {
-//             shape = {
-//                 type: "rect",
-//                 x: this.startX - this.panX,
-//                 y: this.startY - this.panY,
-//                 height,
-//                 width
-//             };
-//         } else if (selectedTool === "elip") {
-//             shape = {
-//                 type: "elip",
-//                 radiusX: Math.abs(width / 2),
-//                 radiusY: Math.abs(height / 2),
-//                 centerX: ((this.startX + canvasCoords.x) / 2) - this.panX,
-//                 centerY: ((this.startY + canvasCoords.y) / 2) - this.panY
-//             }
-//         } else if (selectedTool === "line") {
-//             shape = {
-//                 type: "line",
-//                 startX: this.startX - this.panX,
-//                 startY: this.startY - this.panY,
-//                 endX: canvasCoords.x - this.panX,
-//                 endY: canvasCoords.y - this.panY
-//             }
-//         } else if (selectedTool === "pencil") {
-//             if (this.isDrawing) {
-//                 this.isDrawing = false;
-//                 if (this.pencilCoords.length === 1) {
-//                     this.pencilCoords.push({
-//                         x: this.pencilCoords[0].x + 1 - this.panX,
-//                         y: this.pencilCoords[0].y + 1 - this.panY
-//                     });
-//                 } else {
-//                     for (let i = 0; i < this.pencilCoords.length; i++) {
-//                         this.pencilCoords[i].x -= this.panX;
-//                         this.pencilCoords[i].y -= this.panY;
-//                     }
-//                 }
-
-//                 shape = {
-//                     type: "pencil",
-//                     pencilCoords: [...this.pencilCoords], // Clone the array
-//                 };
-
-//                 this.context.closePath();
-//             }
-//         } else if (selectedTool === "text") {
-//             this.activeTextBox = new TextBox(e.clientX, e.clientY, canvasCoords.x - this.panX, canvasCoords.y - this.panY, "", this.context, this.scale, this);
-//             return;
-//         } else if (selectedTool === "grab") {
-//             if (this.panX !== this.lastSavedPan.x || this.panY !== this.lastSavedPan.y) {
-//                 clearTimeout(this.saveTimeout);
-//                 this.saveTimeout = window.setTimeout(() => {
-//                     localStorage.setItem("px", String(this.panX));
-//                     localStorage.setItem("py", String(this.panY));
-//                 }, 100);
-//                 this.lastSavedPan = { x: this.panX, y: this.panY };
-//             }
-//         }
-
-//         // this.clearCanvas();
-//         if (!shape) {
-//             return; // If somehow no shape was created, stop
-//         }
-
-//         this.existingShapes.push(shape);
-//         this.context.save();
-//         this.socket.send(JSON.stringify({
-//             type: "chat", // (Maybe 'chat' type used for all messages)
-//             message: JSON.stringify(shape),
-//             roomId: this.roomId
-//         }));
-
-//         this.setTool("cursor");
-
-//         if (this.onToolChange) {
-//             this.onToolChange("cursor");
-//         }
-//     }
-// }
-
-
-
-
-
-
-
-
-
 // Oldest polished version
 // zoom and pan works fast as excalidraw
 //----------------------------------------------------------------------------------------------------------------------------------------------
@@ -464,6 +38,7 @@ export type Shape = {
     content: string;
     id?: number;
     width: number;
+    nol: number | 1;
 } | {
     type: "cursor";
     id?: number;
@@ -477,7 +52,7 @@ export class Game {
     private minScale: number = 0.3;
     private maxScale: number = 10;
     activeTextBox: TextBox | undefined;
-    private canvas: HTMLCanvasElement;
+    canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
     existingShapes: Shape[];
     roomId: string;
@@ -506,14 +81,17 @@ export class Game {
     private rectUpdateTimeout: number | null = null;
     private isSelecting: boolean;
     private selectedShape: Shape | null;
+    private currShape: Shape | null;
     private lastMouseShapeX = 0;
     private lastMouseShapeY = 0;
     isWriting: boolean;
+    private sharedKey: string;
 
     constructor(
         canvas: HTMLCanvasElement,
         roomId: string,
         socket: WebSocket,
+        sharedKey: string,
         onToolChange?: (tool: Tool) => void,
     ) {
         this.canvas = canvas;
@@ -535,7 +113,9 @@ export class Game {
         this.lastSavedPan.y = this.panY = Number(localStorage.getItem("py")) || 0;
         this.isSelecting = false;
         this.selectedShape = null;
+        this.currShape = null;
         this.isWriting = false;
+        this.sharedKey = sharedKey;
         this.init();
         this.initHandlers();
         this.initMouseHandlers();
@@ -610,10 +190,10 @@ export class Game {
 
     async init() {
         try {
-            this.existingShapes = await getExistingShapes(this.roomId);
+            this.existingShapes = await getExistingShapes(this.roomId,this.sharedKey);
             //console.log(this.existingShapes);
-        } catch (error) {
-            console.error("Failed to load existing shapes:", error);
+        } catch {
+            //console.error("Failed to load existing shapes:", error);
             this.existingShapes = [];
         }
         this.render();
@@ -634,7 +214,7 @@ export class Game {
                 //console.log(this.existingShapes);
                 this.render();
 
-            } else if (message.type === "chat") {
+            } else if (message.type === "chat-insert") {
                 // console.log("chat");
                 const chatid = message.messageId;
                 this.panX = Number(localStorage.getItem("px")) || 0;
@@ -818,13 +398,10 @@ export class Game {
     }
 
     render() {
-        // Save current transform state
         this.context.save();
 
-        // Reset transform to identity
         this.context.setTransform(1, 0, 0, 1, 0, 0);
 
-        // Clear entire canvas
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.context.fillStyle = "#121212";
@@ -835,6 +412,7 @@ export class Game {
         this.context.strokeStyle = "rgba(255, 255, 255)";
         this.context.lineWidth = 3;
         this.context.font = `20px "Finger Paint"`;
+        this.context.fillStyle = "white";
 
         this.existingShapes.forEach((shape) => {
             if (this.isShapeVisible(shape)) {
@@ -918,19 +496,16 @@ export class Game {
             }
         } else if (shape.type === "text") {
             const fontSize = 20;
-            this.context.fillStyle = "white";
-            this.context.fillText(shape.content, shape.x, shape.y + fontSize + 8);
+            const shapeArr = shape.content.split(/\r?\n/);
+            for (let i = 0; i < shapeArr.length; i++) {
+                this.context.fillText(shapeArr[i], shape.x, shape.y + fontSize + 8 + i * 24);
+            }
         }
     }
 
     drawPreview(worldStart: { x: number, y: number }, worldEnd: { x: number, y: number }) {
-        this.context.save();
 
         // Set common styles once
-        this.context.strokeStyle = "rgba(255, 255, 255, 0.8)";
-        //this.context.setLineDash([5 / this.scale, 5 / this.scale]);
-        this.context.lineWidth = 2;
-
         const width = worldEnd.x - worldStart.x;
         const height = worldEnd.y - worldStart.y;
 
@@ -953,8 +528,6 @@ export class Game {
             this.context.lineTo(worldEnd.x, worldEnd.y);
             this.context.stroke();
         }
-
-        this.context.restore();
     }
 
     mouseDownHandler = (e: MouseEvent) => {
@@ -1001,12 +574,14 @@ export class Game {
                 // console.log(shape);
                 if (shape!) {
                     this.selectedShape = shape;
+                    this.currShape = shape;
                     this.isSelecting = true;
                     if (this.onSelectChange) {
                         this.onSelectChange(true);
                     }
                     return;
                 }
+                this.currShape = null;
                 this.selectedShape = null;
                 this.isSelecting = false;
                 if (this.onSelectChange) {
@@ -1019,6 +594,7 @@ export class Game {
         const worldCoords = this.screenToWorld(e.clientX, e.clientY);
         const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
 
+        // individual shape movement
         if (this.selectedTool === "cursor" && this.isSelecting && this.selectedShape) {
             const deltaX = screenCoords.x - this.lastMouseShapeX;
             const deltaY = screenCoords.y - this.lastMouseShapeY;
@@ -1050,7 +626,7 @@ export class Game {
                 this.selectedShape = newShape;
                 this.existingShapes.push(newShape);
             } else if (this.selectedShape.type === "pencil") {
-                const newShape = { ... this.selectedShape };
+                const newShape = { ... this.selectedShape, pencilCoords: this.selectedShape.pencilCoords.map(p => ({ ...p })) };
                 let len = newShape.pencilCoords.length;
                 for (let i = 0; i < len; i++) {
                     newShape.pencilCoords[i].x += worldDeltaX;
@@ -1069,6 +645,7 @@ export class Game {
             this.render();
         }
 
+        // panning
         else if (this.selectedTool === "grab") {
             // Handle panning
             const deltaX = screenCoords.x - this.lastMouseX;
@@ -1113,9 +690,10 @@ export class Game {
         else {
             // Handle preview for other tools
             this.render();
-
             // Draw preview
             this.context.save();
+            this.context.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            this.context.lineWidth = 2;
             this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
             this.drawPreview(
                 { x: this.startX, y: this.startY },
@@ -1202,18 +780,21 @@ export class Game {
             // Just finish the grab operation
             this.savePanPostions();
             this.saveScale();
-        } else if (this.selectedTool === "cursor" && this.selectedShape) {
-            this.socket.send(JSON.stringify({
-                type: "chat-update",
-                message: JSON.stringify(this.selectedShape),
-                roomId: this.roomId,
-                chatId: this.selectedShape?.id
-            }));
+        } else if (this.selectedTool === "cursor" && this.selectedShape && this.currShape) {
+            if (this.checkDifference(this.selectedShape, this.currShape)) {
+                this.socket.send(JSON.stringify({
+                    type: "chat-update",
+                    message: JSON.stringify(this.selectedShape),
+                    roomId: this.roomId,
+                    chatId: this.selectedShape?.id
+                }));
 
-            this.isSelecting = false;
-            this.selectedShape = null;
-            if (this.onSelectChange) {
-                this.onSelectChange(false);
+                this.isSelecting = false;
+                this.selectedShape = null;
+                this.currShape = null;
+                if (this.onSelectChange) {
+                    this.onSelectChange(false);
+                }
             }
         }
 
@@ -1221,7 +802,7 @@ export class Game {
             //this.existingShapes.push(shape);
 
             this.socket.send(JSON.stringify({
-                type: "chat",
+                type: "chat-insert",
                 message: JSON.stringify(shape),
                 roomId: this.roomId
             }));
@@ -1293,14 +874,15 @@ export class Game {
                 }
             } else if (e.key === 'Delete' && this.selectedShape) {
                 // console.log("Delete!");
+                this.existingShapes = this.existingShapes.filter(x => x.id !== this.selectedShape?.id);
+                const shapeId = this.selectedShape.id;
+                this.selectedShape = null;
+                this.render();
                 this.socket.send(JSON.stringify({
                     type: "chat-delete",
                     roomId: this.roomId,
-                    chatId: this.selectedShape.id
+                    chatId: shapeId
                 }));
-                this.existingShapes = this.existingShapes.filter(x => x.id !== this.selectedShape?.id);
-                this.selectedShape = null;
-                this.render();
             }
             // else if (e.key === '8') {
             //     this.setTool("erase");
@@ -1365,10 +947,9 @@ export class Game {
         } else if (shape.type === "text") {
             const textWidth = shape?.width || 150;
             const sx = shape.x;
-            const sy = shape.y;
+            const sy = shape.y + 8;
             const ex = shape.x + textWidth;
-            const ey = shape.y + 28;
-
+            const ey = shape.y + (shape.nol | 1) * 24 + 8;
             return (sx <= x && x <= ex && sy <= y && y <= ey);
         } else {
             return false;
@@ -1404,9 +985,9 @@ export class Game {
     }
 
     selector = (shape: Shape) => {
-        this.context.strokeStyle = "#a578ff";//#9f8aff
-        this.context.lineWidth = 1.3 / this.scale;
-
+        this.context.save();
+        this.context.strokeStyle = "#ba70ff";//#9f8aff
+        this.context.lineWidth = 1.5 / this.scale;
         if (shape.type === "rect") {
             const X = shape.x;
             const Y = shape.y;
@@ -1479,7 +1060,7 @@ export class Game {
             const X = shape.x;
             const Y = shape.y + 8;
             const W = shape.width || 150;
-            const H = 28;
+            const H = (shape.nol | 1) * 24 + 8;
             this.selectorShape(X, Y, W, H);
         } else if (shape.type === "pencil") {
             const len = shape.pencilCoords.length;
@@ -1502,6 +1083,7 @@ export class Game {
             const H = hy - ly;
             this.selectorShape(X, Y, W, H);
         }
+        this.context.restore();
     }
 
     selectorShape = (X: number, Y: number, W: number, H: number) => {
@@ -1532,6 +1114,26 @@ export class Game {
         this.context.lineTo(X + W + P - (sqr / 2), Y + H + P);
 
         this.context.stroke();
+    }
+
+    checkDifference = (s1: Shape, s2: Shape) => {
+        if (s1.id === s2.id) {
+            if (s1.type === "rect" && s2.type === "rect") {
+                return ((s1.height !== s2.height) || (s1.width !== s2.width) || (s1.x !== s2.x) || (s1.y !== s2.y));
+            } else if (s1.type === "elip" && s2.type === "elip") {
+                return ((s1.centerX !== s2.centerX) || (s1.centerY !== s2.centerY) || (s1.radiusX !== s2.radiusX) || (s1.radiusY !== s2.radiusY));
+            } else if (s1.type === "line" && s2.type === "line") {
+                return ((s1.startX !== s2.startX) || (s1.endX !== s2.endX) || (s1.startY !== s2.startY) || (s1.endY !== s2.endY));
+            } else if (s1.type === "pencil" && s2.type === "pencil") {
+                if (s1.pencilCoords.length !== s2.pencilCoords.length) return true;
+                return (s1.pencilCoords[0].x !== s2.pencilCoords[0].x || s1.pencilCoords[0].y !== s2.pencilCoords[0].y);
+            } else if (s1.type === "text" && s2.type === "text") {
+                return ((s1.content !== s2.content) || (s1.nol !== s2.nol) || (s1.width !== s2.width) || (s1.x !== s2.x) || (s1.y !== s2.y));
+            }
+
+        }
+
+        return false;
     }
 }
 

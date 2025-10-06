@@ -23,7 +23,6 @@ export const SharedRooms = ({ id }: { id: string }) => {
                 if (response.data.check) {
                     setAuthorized(true);
                     setsKey(response.data.sharedKey);
-                    console.log(response.data.sharedKey);
                 }
                 setLoading(false);
             } catch {

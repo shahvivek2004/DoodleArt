@@ -48,7 +48,7 @@ export function Canvas({
   const [selectedTool, setSelectedTool] = useState<Tool>("grab");
   // const [toolConfig, setToolConfig] = useState<ToolConfig>({ color: "white", strokeWidth: 4, bgColor: "transparent", lineDashX: 1, lineDashY: 0, fontSize: 20 });
   const [game, setGame] = useState<Game>();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgcanvasRef = useRef<HTMLCanvasElement>(null);
   const [panningStatus, setPanningStatus] = useState<boolean>(false);
   const [selectShape, setSelectShape] = useState<boolean>(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState({
@@ -200,8 +200,8 @@ export function Canvas({
 
   // Initialize Game instance
   useEffect(() => {
-    if (canvasRef.current) {
-      const g = new Game(canvasRef.current, roomId, socket);
+    if (bgcanvasRef.current) {
+      const g = new Game(bgcanvasRef.current, roomId, socket, sharedKey);
       setGame(g);
       //console.log("new game initialized");
 
@@ -216,7 +216,7 @@ export function Canvas({
         g.destroyMouseHandlers();
       };
     }
-  }, [canvasRef, roomId, socket]);
+  }, [bgcanvasRef, roomId, socket, sharedKey]);
 
   return (
     <div
@@ -224,10 +224,10 @@ export function Canvas({
     >
       {/* Canvas */}
       <canvas
-        ref={canvasRef}
+        ref={bgcanvasRef}
         width={window.innerWidth}
         height={window.innerHeight}
-        className="absolute top-0 left-0 w-screen h-screen z-0"
+        className="absolute top-0 left-0 w-screen h-screen z-0 overflow-hidden"
       />
 
       {/* Tool-bar */}
@@ -245,7 +245,7 @@ export function Canvas({
         className={`absolute left-87/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
       >
         <button
-          className="bg-[#bc2bff] active:bg-[#9600dc] font-medium flex flex-row h-12 w-20 rounded-lg justify-center items-center p-1 text-white mt-4 cursor-pointer"
+          className="bg-[#9600dc] hover:bg-[#7400aa] font-medium flex flex-row h-12 w-20 rounded-lg justify-center items-center p-1 text-white mt-4 cursor-pointer"
           onClick={() => {
             setIsShareModalOpen({
               check: true,

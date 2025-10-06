@@ -8,6 +8,7 @@ import { requiredBodySignin } from "@repo/fullstack-common/types";
 import { HTTP_URL } from "@/middleware";
 
 export function SignIn() {
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [form, setForm] = useState({
@@ -23,11 +24,13 @@ export function SignIn() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // prevents page reload
+    e.preventDefault();
+    setLoading(true);
 
     const result = requiredBodySignin.safeParse(form);
     if (!result.success) {
       setError(result.error.issues[0]?.message);
+      setLoading(false); // ✅ reset if validation fails
       return;
     }
 
@@ -35,7 +38,6 @@ export function SignIn() {
       await axios.post(`${HTTP_URL}/api/v1/auth/signin`, form, {
         withCredentials: true,
       });
-      // console.log(response.data);
       router.push("/dashboard");
     } catch (err) {
       const error = err as AxiosError;
@@ -45,6 +47,8 @@ export function SignIn() {
       } else {
         setError("Something went wrong");
       }
+    } finally {
+      setLoading(false); // ✅ always reset after request
     }
   };
 
@@ -197,9 +201,10 @@ export function SignIn() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="bg-[#5f00a3] p-3 rounded-lg w-full font-bold text-lg hover:bg-[#5f00a375] active:bg-[#5f00a3b2] text-white"
+              disabled={loading} // ✅ prevents multiple clicks
+              className={`p-3 rounded-lg w-full font-bold text-lg text-white ${loading ? "bg-[#5f00a375] cursor-not-allowed" : "bg-[#5f00a3] hover:bg-[#5f00a375] active:bg-[#5f00a3b2]"}`}
             >
-              Submit
+              {loading ? "Submitting..." : "Submit"}
             </button>
 
             <p className="font-semibold text-white">

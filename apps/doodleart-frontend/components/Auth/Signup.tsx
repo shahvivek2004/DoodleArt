@@ -8,6 +8,7 @@ import { requiredBodySignup } from "@repo/fullstack-common/types";
 import { HTTP_URL } from "@/middleware";
 
 export function SignUp() {
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     username: "",
@@ -25,11 +26,13 @@ export function SignUp() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // prevents default page reload
+    e.preventDefault();
+    setLoading(true);
 
     const result = requiredBodySignup.safeParse(form);
     if (!result.success) {
       setError(result.error.issues[0]?.message);
+      setLoading(false); // ✅ reset if validation fails
       return;
     }
 
@@ -37,7 +40,6 @@ export function SignUp() {
       await axios.post(`${HTTP_URL}/api/v1/auth/signup`, form, {
         withCredentials: true,
       });
-      //console.log(response.data);
       router.push("/signin");
     } catch (err) {
       const error = err as AxiosError;
@@ -47,6 +49,8 @@ export function SignUp() {
       } else {
         setError("Something went wrong");
       }
+    } finally {
+      setLoading(false); // ✅ always reset after request
     }
   };
 
@@ -226,9 +230,10 @@ export function SignUp() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="bg-[#5f00a3] p-3 rounded-lg w-full font-bold text-lg hover:bg-[#5f00a375] active:bg-[#5f00a3b2] text-white"
+              disabled={loading} // ✅ prevents multiple clicks
+              className={`p-3 rounded-lg w-full font-bold text-lg text-white ${loading ? "bg-[#5f00a375] cursor-not-allowed" : "bg-[#5f00a3] hover:bg-[#5f00a375] active:bg-[#5f00a3b2]"}`}
             >
-              Submit
+              {loading ? "Submitting..." : "Submit"}
             </button>
 
             {/* Navigate link */}

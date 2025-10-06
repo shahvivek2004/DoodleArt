@@ -1,7 +1,7 @@
 import { Game, Shape } from "./Game";
 
 export class TextBox {
-    private textbox: HTMLInputElement;
+    private textbox: HTMLTextAreaElement;
     private context: CanvasRenderingContext2D;
     private x: number;
     private y: number;
@@ -16,10 +16,12 @@ export class TextBox {
         this.app = app;
         this.app.isWriting = true;
 
-        this.textbox = document.createElement('input');
+        this.textbox = document.createElement('textarea');
+        this.textbox.style.resize = "none";
+        this.textbox.style.overflow = "hidden";
         this.textbox.style.backgroundColor = "transparent";
-        this.textbox.style.width = `${(200 + fontSize) * scale}px`;
-        this.textbox.style.height = `${(20 + fontSize) * scale}px`;
+        this.textbox.style.width = `${this.app.canvas.width - parX}px`;
+        this.textbox.style.height = `${this.app.canvas.height - parY}px`;
         this.textbox.style.position = "absolute";
         this.textbox.style.top = `${parY}px`;
         this.textbox.style.left = `${parX}px`;
@@ -31,22 +33,31 @@ export class TextBox {
         this.textbox.style.fontFamily = "Finger Paint";
         this.textbox.value = content;
         this.textbox.placeholder = "Type here...";
-        document.body.appendChild(this.textbox);
+        this.app.canvas.parentElement?.appendChild(this.textbox);
         this.textbox.focus();
+
+        const blurEvent = () => {
+            finalize();
+        }
 
         const finalize = () => {
             if (this.isFinalized) return;
             this.isFinalized = true;
 
-            const trimmedValue = this.textbox.value.trim();
+            const trimmedValue = this.textbox.value;
+            const lines = this.textbox.value.split(/\r?\n/);
+            //console.log(lines);
 
             if (trimmedValue.length > 0) {
                 this.context.save();
                 this.context.font = `${fontSize}px "Finger Paint"`;
-                const textWidth = Math.round(this.context.measureText(trimmedValue).width);
+                let textWidth = 0;
                 this.context.fillStyle = color;
                 this.context.lineWidth = strokeWidth;
-                this.context.fillText(trimmedValue, x, y + fontSize + 8);
+                for (let i = 0; i < lines.length; i++) {
+                    this.context.fillText(lines[i], x, y + fontSize + 8 + i * 24);
+                    textWidth = Math.max(textWidth, Math.round(this.context.measureText(lines[i]).width));
+                }
                 this.context.restore();
 
                 const textShape: Shape = {
@@ -54,20 +65,23 @@ export class TextBox {
                     x: x,
                     y: y,
                     content: trimmedValue,
-                    width: textWidth
+                    width: textWidth,
+                    nol: lines.length,
                 };
 
                 // this.app.existingShapes.push(textShape);
 
                 this.app.socket.send(JSON.stringify({
-                    type: "chat",
+                    type: "chat-insert",
                     message: JSON.stringify(textShape),
                     roomId: this.app.roomId
                 }));
             }
 
+            this.textbox.removeEventListener('blur', blurEvent);
+
             if (this.textbox.parentElement) {
-                document.body.removeChild(this.textbox);
+                this.app.canvas.parentElement?.removeChild(this.textbox);
             }
             this.app.isWriting = false;
             this.app.activeTextBox = undefined;
@@ -76,15 +90,6 @@ export class TextBox {
                 this.app.onToolChange("cursor");
             }
         };
-
-        this.textbox.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === "Enter") {
-                finalize();
-            }
-        });
-
-        this.textbox.addEventListener('blur', () => {
-            finalize();
-        });
+        this.textbox.addEventListener('blur', blurEvent);
     }
 }
