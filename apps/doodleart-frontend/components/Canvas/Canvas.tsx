@@ -263,7 +263,7 @@ export function Canvas({
         className={`absolute left-93/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
       >
         <button
-          className="bg-[#232329] active:bg-[#363636] font-medium flex flex-row h-12 w-20 rounded-lg justify-center items-center p-1 text-white mt-4 cursor-pointer"
+          className="bg-[#27272a] active:bg-[#363636] font-medium flex flex-row h-12 w-20 rounded-lg justify-center items-center p-1 text-white mt-4 cursor-pointer"
           onClick={() => {
             setInstructionModal({ isOpen: true });
           }}
@@ -274,14 +274,14 @@ export function Canvas({
 
       {/* Credit */}
       <div
-        className={`absolute left-85/100 top-90/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
+        className={`absolute left-93/100 top-90/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
       >
         <a href="https://github.com/shahvivek2004/DoodleArt">
-          <div className="flex flex-row gap-2 bg-[#232329] h-12 w-48 rounded-lg justify-center items-center hover:underline p-1 text-white">
+          <div className="flex flex-row gap-2 bg-[#27272a] h-12 w-20 rounded-lg justify-center items-center hover:underline p-1 text-white">
             <div>
               <Github />
             </div>
-            <div>Created by Vivek</div>
+            
           </div>
         </a>
       </div>

@@ -32,7 +32,7 @@ export class TextBox {
         this.textbox.style.fontSize = `${fontSize * scale}px`;
         this.textbox.style.fontFamily = "Finger Paint";
         this.textbox.value = content;
-        this.textbox.placeholder = "Type here...";
+        // this.textbox.placeholder = "Type here...";
         this.app.canvas.parentElement?.appendChild(this.textbox);
         this.textbox.focus();
 
