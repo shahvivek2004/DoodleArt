@@ -80,13 +80,15 @@ export class Game {
     private resizeTimeout: number | null = null;
     private rectUpdateTimeout: number | null = null;
     private isSelecting: boolean;
+    private detectedShape: Shape | null;
     private selectedShape: Shape | null;
-    private currShape: Shape | null;
     private lastMouseShapeX = 0;
     private lastMouseShapeY = 0;
     isWriting: boolean;
     private sharedKey: string;
-
+    private clipboard: Shape | null;
+    private liveMouseX: number;
+    private liveMouseY: number;
     constructor(
         canvas: HTMLCanvasElement,
         roomId: string,
@@ -112,10 +114,13 @@ export class Game {
         this.lastSavedPan.x = this.panX = Number(localStorage.getItem("px")) || 0;
         this.lastSavedPan.y = this.panY = Number(localStorage.getItem("py")) || 0;
         this.isSelecting = false;
+        this.detectedShape = null;
         this.selectedShape = null;
-        this.currShape = null;
         this.isWriting = false;
         this.sharedKey = sharedKey;
+        this.clipboard = null;
+        this.liveMouseX = 0;
+        this.liveMouseY = 0;
         this.init();
         this.initHandlers();
         this.initMouseHandlers();
@@ -190,7 +195,7 @@ export class Game {
 
     async init() {
         try {
-            this.existingShapes = await getExistingShapes(this.roomId,this.sharedKey);
+            this.existingShapes = await getExistingShapes(this.roomId, this.sharedKey);
             //console.log(this.existingShapes);
         } catch {
             //console.error("Failed to load existing shapes:", error);
@@ -262,20 +267,6 @@ export class Game {
     initZoomHandlers() {
         this.canvas.addEventListener('wheel', this.wheelHandler, { passive: false });
     }
-
-    // New mouse leave handler
-    // mouseLeaveHandler = (e: MouseEvent) => {
-    //     // Clean up any ongoing operations when mouse leaves canvas
-    //     if (this.selectedTool === "pencil" && this.isDrawing) {
-    //         // Finish the pencil stroke
-    //         this.mouseUpHandler(e);
-    //     }
-    //     // Reset click state but don't interfere with grab operations
-    //     if (this.selectedTool !== "grab") {
-    //         this.clicked = false;
-    //         this.isDrawing = false;
-    //     }
-    // }
 
     destroyMouseHandlers() {
         this.canvas.removeEventListener('mousedown', this.mouseDownHandler);
@@ -420,7 +411,7 @@ export class Game {
             }
         });
 
-        if (this.selectedShape) {
+        if (this.selectedShape && this.isSelecting) {
             this.selector(this.selectedShape);
         }
 
@@ -545,10 +536,15 @@ export class Game {
         }
 
         if (this.selectedTool === "cursor") {
-            if (this.isSelecting) {
+            if (this.detectedShape) {
+                this.selectedShape = this.detectedShape;
+                this.isSelecting = true;
                 const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
                 this.lastMouseShapeX = screenCoords.x;
                 this.lastMouseShapeY = screenCoords.y;
+            } else {
+                this.selectedShape = null;
+                this.isSelecting = false;
             }
 
             this.render();
@@ -567,21 +563,32 @@ export class Game {
     }
 
     mouseMoveHandler = (e: MouseEvent) => {
+        const worldCoords = this.screenToWorld(e.clientX, e.clientY);
         if (!this.clicked) {
+            this.liveMouseX = worldCoords.x;
+            this.liveMouseY = worldCoords.y;
             if (this.selectedTool === "cursor") {
                 const worldCoords = this.screenToWorld(e.clientX, e.clientY);
                 const shape = this.getElement(worldCoords.x, worldCoords.y);
-                // console.log(shape);
+
                 if (shape!) {
-                    this.selectedShape = shape;
-                    this.currShape = shape;
-                    this.isSelecting = true;
+                    this.detectedShape = shape;
                     if (this.onSelectChange) {
                         this.onSelectChange(true);
                     }
                     return;
                 }
-                this.currShape = null;
+
+                if (this.selectedShape) {
+                    this.isSelecting = false;
+                    this.detectedShape = null;
+                    if (this.onSelectChange) {
+                        this.onSelectChange(false);
+                    }
+                    return;
+                }
+
+                this.detectedShape = null;
                 this.selectedShape = null;
                 this.isSelecting = false;
                 if (this.onSelectChange) {
@@ -591,7 +598,7 @@ export class Game {
             return;
         }
 
-        const worldCoords = this.screenToWorld(e.clientX, e.clientY);
+
         const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
 
         // individual shape movement
@@ -780,21 +787,15 @@ export class Game {
             // Just finish the grab operation
             this.savePanPostions();
             this.saveScale();
-        } else if (this.selectedTool === "cursor" && this.selectedShape && this.currShape) {
-            if (this.checkDifference(this.selectedShape, this.currShape)) {
+        } else if (this.selectedTool === "cursor" && this.selectedShape && this.detectedShape) {
+            if (this.checkDifference(this.selectedShape, this.detectedShape)) {
+                this.isSelecting = false;
                 this.socket.send(JSON.stringify({
                     type: "chat-update",
                     message: JSON.stringify(this.selectedShape),
                     roomId: this.roomId,
                     chatId: this.selectedShape?.id
                 }));
-
-                this.isSelecting = false;
-                this.selectedShape = null;
-                this.currShape = null;
-                if (this.onSelectChange) {
-                    this.onSelectChange(false);
-                }
             }
         }
 
@@ -883,13 +884,97 @@ export class Game {
                     roomId: this.roomId,
                     chatId: shapeId
                 }));
+            } else if (e.ctrlKey && (e.key === 'c' || e.key === 'C') && this.selectedShape) {
+                const data = this.selectedShape;
+                const type = data.type;
+                if (type === "rect") {
+                    this.clipboard = {
+                        type: type,
+                        x: this.liveMouseX,
+                        y: this.liveMouseY,
+                        width: data.width,
+                        height: data.height
+                    }
+                } else if (type === "elip") {
+                    this.clipboard = {
+                        type: type,
+                        centerX: this.liveMouseX,
+                        centerY: this.liveMouseY,
+                        radiusX: data.radiusX,
+                        radiusY: data.radiusY
+                    }
+                } else if (type === "line") {
+                    const w = data.endX - data.startX;
+                    const h = data.endY - data.startY;
+                    this.clipboard = {
+                        type: type,
+                        startX: this.liveMouseX,
+                        startY: this.liveMouseY,
+                        endX: this.liveMouseX + w,
+                        endY: this.liveMouseY + h
+                    }
+                } else if (type === "text") {
+                    this.clipboard = {
+                        type: type,
+                        x: this.liveMouseX,
+                        y: this.liveMouseY,
+                        content: data.content,
+                        width: data.width,
+                        nol: data.nol
+                    }
+                }
+            } else if (e.ctrlKey && (e.key === 'v' || e.key === 'V') && this.clipboard) {
+                const data = this.clipboard;
+                const type = data.type;
+                if (type === "rect") {
+                    this.clipboard = {
+                        type: type,
+                        x: this.liveMouseX,
+                        y: this.liveMouseY,
+                        width: data.width,
+                        height: data.height
+                    }
+                } else if (type === "elip") {
+                    this.clipboard = {
+                        type: type,
+                        centerX: this.liveMouseX,
+                        centerY: this.liveMouseY,
+                        radiusX: data.radiusX,
+                        radiusY: data.radiusY
+                    }
+                } else if (type === "line") {
+                    const w = data.endX - data.startX;
+                    const h = data.endY - data.startY;
+                    this.clipboard = {
+                        type: type,
+                        startX: this.liveMouseX,
+                        startY: this.liveMouseY,
+                        endX: this.liveMouseX + w,
+                        endY: this.liveMouseY + h
+                    }
+                } else if (type === "text") {
+                    this.clipboard = {
+                        type: type,
+                        x: this.liveMouseX,
+                        y: this.liveMouseY,
+                        content: data.content,
+                        width: data.width,
+                        nol: data.nol
+                    }
+                }
+
+                const payload = this.clipboard;
+
+                // Nerfing it to the one time operation, because I am Broke
+                this.clipboard = null;
+                this.selectedShape = null;
+
+                this.socket.send(JSON.stringify({
+                    type: "chat-insert",
+                    message: JSON.stringify(payload),
+                    roomId: this.roomId
+                }));
             }
-            // else if (e.key === '8') {
-            //     this.setTool("erase");
-            //     if (this.onToolChange) {
-            //         this.onToolChange("erase");
-            //     }
-            // }
         }
     }
 
@@ -1136,138 +1221,3 @@ export class Game {
         return false;
     }
 }
-
-
-// else if (this.selectedTool === "pencil") {
-//     if (this.isDrawing) {
-//         this.pencilCoords.push({ x: worldCoords.x, y: worldCoords.y });
-//         this.render();
-
-//         // Draw current pencil stroke
-//         this.context.save();
-//         this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
-
-
-//         if (this.pencilCoords.length > 0) {
-//             this.context.beginPath();
-//             this.context.strokeStyle = "rgba(255, 255, 255)";
-//             this.context.lineWidth = 2 / this.scale; // Scale-independent line width
-//             this.context.lineCap = "round";
-//             this.context.lineJoin = "round";
-//             this.context.moveTo(this.pencilCoords[0].x, this.pencilCoords[0].y);
-//             for (let i = 1; i < this.pencilCoords.length; i++) {
-//                 this.context.lineTo(this.pencilCoords[i].x, this.pencilCoords[i].y);
-//             }
-//             this.context.stroke();
-//         }
-//         this.context.restore();
-//     }
-// }
-
-
-
-
-
-// resetZoom() {
-//     this.scale = 1;
-//     this.panX = 0;
-//     this.panY = 0;
-//     this.render();
-// }
-
-// fitToCanvas() {
-//     if (this.existingShapes.length === 0) {
-//         this.resetZoom();
-//         return;
-//     }
-
-//     // Calculate bounding box of all shapes
-//     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-//     this.existingShapes.forEach(shape => {
-//         if (shape.type === "rect") {
-//             minX = Math.min(minX, shape.x);
-//             minY = Math.min(minY, shape.y);
-//             maxX = Math.max(maxX, shape.x + shape.width);
-//             maxY = Math.max(maxY, shape.y + shape.height);
-//         } else if (shape.type === "elip") {
-//             minX = Math.min(minX, shape.centerX - shape.radiusX);
-//             minY = Math.min(minY, shape.centerY - shape.radiusY);
-//             maxX = Math.max(maxX, shape.centerX + shape.radiusX);
-//             maxY = Math.max(maxY, shape.centerY + shape.radiusY);
-//         } else if (shape.type === "line") {
-//             minX = Math.min(minX, shape.startX, shape.endX);
-//             minY = Math.min(minY, shape.startY, shape.endY);
-//             maxX = Math.max(maxX, shape.startX, shape.endX);
-//             maxY = Math.max(maxY, shape.startY, shape.endY);
-//         } else if (shape.type === "pencil") {
-//             shape.pencilCoords.forEach(coord => {
-//                 minX = Math.min(minX, coord.x);
-//                 minY = Math.min(minY, coord.y);
-//                 maxX = Math.max(maxX, coord.x);
-//                 maxY = Math.max(maxY, coord.y);
-//             });
-//         } else if (shape.type === "text") {
-//             minX = Math.min(minX, shape.x);
-//             minY = Math.min(minY, shape.y);
-//             maxX = Math.max(maxX, shape.x + 200); // Approximate text width
-//             maxY = Math.max(maxY, shape.y + 20);
-//         }
-//     });
-
-//     const contentWidth = maxX - minX;
-//     const contentHeight = maxY - minY;
-//     const P = 50;
-
-//     const scaleX = (this.canvas.width - P * 2) / contentWidth;
-//     const scaleY = (this.canvas.height - P * 2) / contentHeight;
-
-//     this.scale = Math.min(scaleX, scaleY, this.maxScale);
-//     this.scale = Math.max(this.scale, this.minScale);
-
-//     // Center the content
-//     const centerX = (minX + maxX) / 2;
-//     const centerY = (minY + maxY) / 2;
-
-//     this.panX = this.canvas.width / 2 - centerX * this.scale;
-//     this.panY = this.canvas.height / 2 - centerY * this.scale;
-
-//     this.render();
-// }
-
-// // Zoom control methods
-// zoomIn(factor: number = 1.2, centerX?: number, centerY?: number) {
-//     const newScale = this.scale * factor;
-//     if (newScale <= this.maxScale) {
-//         this.zoomToPoint(newScale, centerX, centerY);
-//     }
-// }
-
-// zoomOut(factor: number = 1.2, centerX?: number, centerY?: number) {
-//     const newScale = this.scale / factor;
-//     if (newScale >= this.minScale) {
-//         this.zoomToPoint(newScale, centerX, centerY);
-//     }
-// }
-
-// // Helper method to zoom to a specific point
-// private zoomToPoint(newScale: number, centerX?: number, centerY?: number) {
-//     // Default to canvas center if no point specified
-//     const zoomCenterX = centerX ?? this.canvas.width / 2;
-//     const zoomCenterY = centerY ?? this.canvas.height / 2;
-
-//     // Calculate world position before zoom
-//     const worldPosBefore = {
-//         x: (zoomCenterX - this.panX) / this.scale,
-//         y: (zoomCenterY - this.panY) / this.scale
-//     };
-
-//     // Apply new scale
-//     this.scale = newScale;
-
-//     // Adjust pan to keep the zoom center point fixed
-//     this.panX = zoomCenterX - worldPosBefore.x * this.scale;
-//     this.panY = zoomCenterY - worldPosBefore.y * this.scale;
-
-//     this.render();
-// } 
