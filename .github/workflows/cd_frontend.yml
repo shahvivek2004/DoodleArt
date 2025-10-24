@@ -1,13 +1,15 @@
 name: Continuous Deployment(CD) Frontend
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: ["CI"]
+  #   types:
+  #     - completed
+  push:
+    branches: ["main"]
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Continous Deployment of FE server
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

@@ -1,14 +1,16 @@
 name: Continuous Deployment(CD) Backend
 
 on:
-  workflow_run:
-    workflows: ["CI"] # This must match the name in ci.yml exactly
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: ["CI"] # This must match the name in ci.yml exactly
+  #   types:
+  #     - completed
+  push:
+    branches: ["main"]
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Continous Deployment of BE server
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

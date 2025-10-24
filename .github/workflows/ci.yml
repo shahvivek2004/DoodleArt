@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: ["main"]
+  # push:
+  #   branches: ["main"]
   pull_request:
     branches: ["main"]
     # types: [opened, synchronize]
@@ -19,24 +19,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm format --check
-  
+
   type-check:
-     name: Code Type-Checking
-     runs-on: ubuntu-latest
-     steps:
+    name: Code Type-Checking
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
-        with: 
+        with:
           version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
-      
+          cache: "pnpm"
+
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm format --check
@@ -44,7 +44,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
         with:
@@ -52,70 +52,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
-        
+          cache: "pnpm"
+
       - run: pnpm install
       - run: pnpm db:generate
       - run: pnpm build
-
-
-
-
-
-
-
-# name: CI
- 
-# on:
-#   push:
-#     branches: ["main"]
-#   pull_request:
-#     types: [opened, synchronize]
- 
-# jobs:
-#   lint:
-#     name: Lint & Format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: pnpm/action-setup@v3
-#         with:
-#           version: 8
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
-#           cache: 'pnpm'
-#       - run: pnpm install
-#       - run: pnpm lint
-#       - run: pnpm format --check
-
-#   type-check:
-#     name: Type Check
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: pnpm/action-setup@v3
-#         with:
-#           version: 8
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
-#           cache: 'pnpm'
-#       - run: pnpm install
-#       - run: pnpm check-types
-
-#   build:
-#     name: Build
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: pnpm/action-setup@v3
-#         with:
-#           version: 8
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
-#           cache: 'pnpm'
-#       - run: pnpm install
-#       - run: pnpm db:generate
-#       - run: pnpm build
