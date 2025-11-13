@@ -35,7 +35,9 @@ export const AuthComp = ({ quitfunc }: { quitfunc: () => void }) => {
 
         {/* Main message */}
         <div>
-          <h1 className={`text-3xl font-bold ${theme === "b" ? "text-white" : "text-black"} mb-2`}>
+          <h1
+            className={`text-3xl font-bold ${theme === "b" ? "text-white" : "text-black"} mb-2`}
+          >
             Authentication Required
           </h1>
           <p className="text-gray-400 text-lg">

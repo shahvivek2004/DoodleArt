@@ -133,11 +133,7 @@ export function RoomCanvas({
 
   return (
     <div>
-      <Canvas
-        roomId={roomId}
-        socket={socket}
-        sharedKey={sharedKey}
-      />
+      <Canvas roomId={roomId} socket={socket} sharedKey={sharedKey} />
     </div>
   );
 }

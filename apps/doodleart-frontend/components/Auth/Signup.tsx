@@ -25,7 +25,7 @@ export function SignUp() {
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async () => {
     // e.preventDefault();
     setLoading(true);
 
@@ -136,7 +136,7 @@ export function SignUp() {
             className="flex flex-col items-center gap-5 w-full"
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit(e);
+              handleSubmit();
             }}
           >
             {/* Input Tags */}

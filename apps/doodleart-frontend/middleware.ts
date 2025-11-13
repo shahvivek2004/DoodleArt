@@ -1,7 +1,7 @@
 // middleware.ts
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 //import { jwtVerify } from 'jose';
 
 export const HTTP_URL = process.env.NEXT_PUBLIC_HTTP_URL;
@@ -21,7 +21,7 @@ export const FE_URL = process.env.NEXT_PUBLIC_FE_URL;
 // }
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('__uIt')?.value;
+  const token = request.cookies.get("__uIt")?.value;
   const { pathname } = request.nextUrl;
 
   let isAuthenticated = false;
@@ -32,9 +32,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Handle WebSocket authentication
-  if (pathname === '/api/ws-auth') {
+  if (pathname === "/api/ws-auth") {
     if (!isAuthenticated) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const wsUrl = `${WS_URL}?token=${token}`;
@@ -42,13 +42,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // If authenticated and trying to access /signin or /signup, redirect to /dashboard
-  if (isAuthenticated && (pathname === '/signin' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (isAuthenticated && (pathname === "/signin" || pathname === "/signup")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // If NOT authenticated and trying to access protected routes, redirect to /signin
-  if (!isAuthenticated && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/signin', request.url));
+  if (!isAuthenticated && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/signin", request.url));
   }
 
   return NextResponse.next();
@@ -57,9 +57,9 @@ export async function middleware(request: NextRequest) {
 // Define which paths middleware should run on
 export const config = {
   matcher: [
-    '/signin',
-    '/signup',
-    '/dashboard/:path*', // all dashboard pages
-    '/api/ws-auth', // Add WebSocket authentication endpoint
+    "/signin",
+    "/signup",
+    "/dashboard/:path*", // all dashboard pages
+    "/api/ws-auth", // Add WebSocket authentication endpoint
   ],
 };

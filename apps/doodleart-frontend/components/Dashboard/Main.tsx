@@ -91,7 +91,7 @@ export function DashBoard() {
         setProjects(filtered);
       }
     },
-    [data]
+    [data],
   ); // Only recreate when data changes
 
   useEffect(() => {
@@ -147,7 +147,7 @@ export function DashBoard() {
     const updatedProjects = data.map((project) =>
       project.id === roomId
         ? { ...project, isFavourite: !project.isFavourite }
-        : project
+        : project,
     );
     setData(updatedProjects);
     const updatedRoom = updatedProjects.find((r) => r.id === roomId);
@@ -160,7 +160,7 @@ export function DashBoard() {
     const updatedProjects = data.map((project) =>
       project.id === roomId
         ? { ...project, isInTrash: !project.isInTrash }
-        : project
+        : project,
     );
     const updatedRoom = updatedProjects.find((ele) => ele.id === roomId);
     if (updatedRoom) {
@@ -209,7 +209,7 @@ export function DashBoard() {
       await axios.post(
         `${HTTP_URL}/api/v1/auth/signout`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       localStorage.clear();
       router.push("/signin");
@@ -478,7 +478,7 @@ export function DashBoard() {
                         <button
                           onClick={() => {
                             router.push(
-                              `/canvas/${project.id}?sharedKey=${project.sharedKey}`
+                              `/canvas/${project.id}?sharedKey=${project.sharedKey}`,
                             );
                           }}
                           className="w-full cursor-pointer"
@@ -610,4 +610,3 @@ function timeAgo(dateString: string): string {
 
   return "just now";
 }
-
