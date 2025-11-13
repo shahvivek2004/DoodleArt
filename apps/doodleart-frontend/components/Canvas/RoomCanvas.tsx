@@ -19,7 +19,13 @@ export function RoomCanvas({
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(true);
+  const [theme, setTheme] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+    setTheme(storedTheme ?? "b");
+  }, []);
 
   const handleQuit = () => {
     try {
@@ -32,18 +38,15 @@ export function RoomCanvas({
   useEffect(() => {
     let ws: WebSocket | null = null;
 
-    // Helper function to clean up the WebSocket connection
     const cleanupSocket = () => {
       if (ws && ws.readyState === WebSocket.OPEN) {
-        // Send a leave_room message before closing
         const leaveData = JSON.stringify({
           type: "leave_room",
           roomId,
         });
         ws.send(leaveData);
-        localStorage.clear();
+        // localStorage.clear();
         ws.close();
-        //console.log("WebSocket connection closed cleanly");
       }
     };
 
@@ -75,27 +78,20 @@ export function RoomCanvas({
         };
 
         ws.onerror = () => {
-          //console.error("WebSocket error:", error);
           setError("Failed to connect to server");
           setIsLoading(false);
         };
 
         ws.onclose = (event) => {
-          //console.log("Hello");
           setSocket(null);
           switch (event.code) {
             case 1008:
-              //setError("Unauthorized: Please log in again.");
-              //console.log("Not authenticated!");
               setIsAuthenticated(false);
               break;
             case 4001:
-              //console.log("User not found!");
               setError("Session not found. Please refresh.");
               break;
             case 4003:
-              //setError("Access denied to this room.");
-              //console.log("not Authorized");
               setIsAuthorized(false);
               break;
             case 1011:
@@ -107,8 +103,6 @@ export function RoomCanvas({
         };
       })
       .catch(() => {
-        // console.error("Failed to get WebSocket authentication:", error);
-        //setError("Authentication failed");
         setIsLoading(false);
         setIsAuthenticated(false);
       });
@@ -119,8 +113,10 @@ export function RoomCanvas({
     };
   }, [roomId, sharedKey]);
 
-  if (isLoading) {
-    return <Loader />;
+  if (theme === null) return null;
+
+  if (isLoading || !socket) {
+    return <Loader theme={theme} />;
   }
 
   if (!isAuthenticated) {
@@ -135,13 +131,13 @@ export function RoomCanvas({
     return <div className="text-red-500 py-4">{error}</div>;
   }
 
-  if (!socket) {
-    return <div className="py-4">Connection not established</div>;
-  }
-
   return (
     <div>
-      <Canvas roomId={roomId} socket={socket} sharedKey={sharedKey} />
+      <Canvas
+        roomId={roomId}
+        socket={socket}
+        sharedKey={sharedKey}
+      />
     </div>
   );
 }

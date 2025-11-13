@@ -24,7 +24,7 @@ export function SignIn() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    // e.preventDefault();
     setLoading(true);
 
     const result = requiredBodySignin.safeParse(form);

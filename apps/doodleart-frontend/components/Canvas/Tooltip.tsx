@@ -11,7 +11,7 @@ export function Tooltip({
 
     return (
         <div
-            className="flex flex-1 items-center justify-center p-1"
+            className="flex items-center justify-center"
             onMouseEnter={() => setVisible(true)}
             onMouseLeave={() => setVisible(false)}
         >

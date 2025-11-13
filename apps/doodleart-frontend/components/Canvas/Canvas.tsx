@@ -6,17 +6,18 @@ import {
   Github,
   Hand,
   HelpCircle,
+  Moon,
   MousePointer,
   Pencil,
   RectangleHorizontalIcon,
+  Share2,
   Slash,
+  Sun,
   Type,
 } from "lucide-react";
 import { Game } from "@/draw/Game";
 import { ShareRoomModal } from "../Dashboard/pop-ups/ShareRoomModal";
 import { Instruction } from "./Instruction";
-// import Image from "next/image";
-// import { Tooltip } from "./Tooltip";
 
 export type Tool =
   | "rect"
@@ -27,15 +28,6 @@ export type Tool =
   | "cursor"
   | "grab";
 
-// export type ToolConfig = {
-//     color: string,
-//     strokeWidth: number,
-//     bgColor: string,
-//     lineDashX: number,
-//     lineDashY: number,
-//     fontSize: number
-// };
-
 export function Canvas({
   roomId,
   socket,
@@ -45,8 +37,11 @@ export function Canvas({
   socket: WebSocket;
   sharedKey: string;
 }) {
+  const [themeState, setThemeState] = useState({
+    value: localStorage.getItem("theme") || "b",
+  });
+
   const [selectedTool, setSelectedTool] = useState<Tool>("grab");
-  // const [toolConfig, setToolConfig] = useState<ToolConfig>({ color: "white", strokeWidth: 4, bgColor: "transparent", lineDashX: 1, lineDashY: 0, fontSize: 20 });
   const [game, setGame] = useState<Game>();
   const bgcanvasRef = useRef<HTMLCanvasElement>(null);
   const [panningStatus, setPanningStatus] = useState<boolean>(false);
@@ -81,90 +76,14 @@ export function Canvas({
     }
   };
 
-  // const getSidebarCursorClass = (tool: Tool) => {
-  //     switch (tool) {
-  //         case "grab":
-  //             return "hidden";
-  //         case "cursor":
-  //             return "hidden";
-  //         default:
-  //             return "block";
-  //     }
-  // };
-
-  // const getStrokeBorderDisplay = (color: string) => {
-  //     if (color == toolConfig.color) {
-  //         if (color == "white") {
-  //             return "border border-3 border-cyan-400";
-  //         }
-  //         return `border border-3`;
-  //     }
-  // };
-
-  // const getBackgroundBorderDisplay = (color: string) => {
-  //     if (color == toolConfig.bgColor) {
-  //         return "border border-3 border-cyan-400";
-  //     }
-  // };
-
-  // const getStrokeWidthBorderDisplay = (lineWidth: number) => {
-  //     if (lineWidth == toolConfig.strokeWidth) {
-  //         return true;
-  //     }
-
-  //     return false;
-  // };
-
-  // const getColorHex = (color: string) => {
-  //     switch (color) {
-  //         case "red":
-  //             return "#f87171";
-  //         case "yellow":
-  //             return "#facc15";
-  //         case "green":
-  //             return "#4ade80";
-  //         case "blue":
-  //             return "#60a5fa";
-  //         case "purple":
-  //             return "#c084fc";
-  //         default:
-  //             return "#ffffff";
-  //     }
-  // };
-
-  // const getBgColorHex = (color: string) => {
-  //     switch (color) {
-  //         case "red":
-  //             return "#fca5a5";
-  //         case "yellow":
-  //             return "#fef08a";
-  //         case "green":
-  //             return "#bbf7d0";
-  //         case "blue":
-  //             return "#bfdbfe";
-  //         case "purple":
-  //             return "#e9d5ff";
-  //         default:
-  //             return "transparent";
-  //     }
-  // };
-
-  // const getStrokeStyleBorderDisplay = (strokeData: { x: number, y: number }) => {
-  //     if (toolConfig.lineDashX === strokeData.x && toolConfig.lineDashY === strokeData.y) {
-  //         return true;
-  //     }
-  //     return false;
-  // };
-
-  // const getFontSize = (x: number) => {
-  //     if (x == toolConfig.fontSize) {
-  //         return true;
-  //     }
-  //     return false;
-  // }
-
   const handleToolChange = (tool: Tool) => {
     setSelectedTool(tool);
+  };
+
+  const handleGameToolChange = (tool: Tool) => {
+    if (game) {
+      game.setTool(tool);
+    }
   };
 
   const handlePanChange = (status: boolean) => {
@@ -175,44 +94,30 @@ export function Canvas({
     setSelectShape(status);
   };
 
-  // useEffect(() => {
-  //     if (game) {
-  //         const payload: ToolConfig = {
-  //             color: getColorHex(toolConfig.color),
-  //             bgColor: getBgColorHex(toolConfig.bgColor),
-  //             strokeWidth: toolConfig.strokeWidth,
-  //             lineDashX: toolConfig.lineDashX,
-  //             lineDashY: toolConfig.lineDashY,
-  //             fontSize: toolConfig.fontSize
-  //         }
-  //         game.setToolConfigs(payload);
-  //     }
-  // }, [toolConfig, game]);
-
-  // Set tool in Game class when selected tool changes from UI
-
-  useEffect(() => {
-    if (game) {
-      // console.log("tool change!");
-      game.setTool(selectedTool);
-    }
-  }, [selectedTool, game]);
-
-  // Initialize Game instance
   useEffect(() => {
     if (bgcanvasRef.current) {
       const g = new Game(bgcanvasRef.current, roomId, socket, sharedKey);
       setGame(g);
-      //console.log("new game initialized");
 
-      // Register callback for tool changes from Game class
       g.registerToolChangeCallback(handleToolChange);
       g.registerPanningCallback(handlePanChange);
       g.registerSelectingCallback(handleSelectionChange);
-      //console.log("tool change registered!");
+
+      const resizeCanvas = () => {
+        const dpr = window.devicePixelRatio || 1;
+
+        requestAnimationFrame(() => {
+          // high DPI means : scale up canvas width height scale down canvas css width height
+          g.highDPI(dpr);
+          g.render();
+        });
+      };
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
 
       return () => {
-        //console.log("mousehandlers destroyed!");
+        window.removeEventListener("resize", resizeCanvas);
         g.destroyMouseHandlers();
       };
     }
@@ -223,29 +128,51 @@ export function Canvas({
       className={`relative h-screen w-screen overflow-hidden ${getCursorClass(selectedTool)}`}
     >
       {/* Canvas */}
+
       <canvas
         ref={bgcanvasRef}
-        width={window.innerWidth}
-        height={window.innerHeight}
-        className="absolute top-0 left-0 w-screen h-screen z-0 overflow-hidden"
+        className="absolute top-0 left-0 w-full h-full z-0 overflow-hidden touch-none select-none"
       />
 
       {/* Tool-bar */}
       <div
-        className={`absolute left-1/2 transform -translate-x-1/2 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
+        className={`absolute left-1/2 transform -translate-x-1/2 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"} select-none`}
       >
         <ToolBar
           selectedTool={selectedTool}
           setSelectedTool={handleToolChange}
+          themeState={themeState}
+          setGameTool={handleGameToolChange}
         />
       </div>
 
-      {/* Share Button */}
       <div
-        className={`absolute left-87/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
+        className={`absolute z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"} xl:right-4 xl:top-4 xl:flex-row xl:gap-2 right-4 bottom-4 flex-row gap-2 flex h-9`}
       >
+        {/* Theme Button */}
         <button
-          className="bg-[#9600dc] hover:bg-[#7400aa] font-medium flex flex-row h-12 w-20 rounded-lg justify-center items-center p-1 text-white mt-4 cursor-pointer"
+          className={`${themeState.value === "b" ? "bg-[#ffffff] active:bg-[#e5e5e5]" : "bg-[#27272a] active:bg-[#363636]"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
+          onClick={() => {
+            const val = themeState.value === "b" ? "w" : "b";
+            localStorage.setItem("theme", val);
+            setThemeState({ value: val });
+            if (game) {
+              game.setTheme(val);
+              game.render();
+            }
+          }}
+          title="Theme"
+        >
+          {themeState.value === "b" ? (
+            <Sun width={15} height={15} className="text-black" />
+          ) : (
+            <Moon width={15} height={15} className="text-white" />
+          )}
+        </button>
+
+        {/* Share Button */}
+        <button
+          className={`bg-[#a12fff] active:bg-[#7400aa] ${themeState.value === "b" ? "text-black" : "text-white"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
           onClick={() => {
             setIsShareModalOpen({
               check: true,
@@ -253,37 +180,47 @@ export function Canvas({
               roomId: roomId,
             });
           }}
+          title="Share Room"
         >
-          Share
+          <div className="block xl:hidden">
+            <Share2 width={15} height={15} />
+          </div>
+          <div className="hidden xl:block text-xs">Share</div>
         </button>
-      </div>
 
-      {/* Help Button */}
-      <div
-        className={`absolute left-93/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
-      >
+        {/* Help Button */}
         <button
-          className="bg-[#27272a] active:bg-[#363636] font-medium flex flex-row h-12 w-20 rounded-lg justify-center items-center p-1 text-white mt-4 cursor-pointer"
+          className={`${themeState.value === "w" ? "bg-[#e8e8ef] active:bg-[#bbbbbb] text-black" : "bg-[#27272a] active:bg-[#363636] text-white"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
           onClick={() => {
             setInstructionModal({ isOpen: true });
           }}
+          title="Help & Instructions"
         >
-          <HelpCircle className="h-6 w-6" />
+          <HelpCircle
+            width={18}
+            height={18}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
         </button>
-      </div>
 
-      {/* Credit */}
-      <div
-        className={`absolute left-93/100 top-90/100 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"}`}
-      >
-        <a href="https://github.com/shahvivek2004/DoodleArt">
-          <div className="flex flex-row gap-2 bg-[#27272a] h-12 w-20 rounded-lg justify-center items-center hover:underline p-1 text-white">
-            <div>
-              <Github />
-            </div>
-            
-          </div>
-        </a>
+        {/* Credit Button */}
+        <button
+          className={`${themeState.value === "w" ? "bg-[#e8e8ef] active:bg-[#bbbbbb] text-black" : "bg-[#27272a] active:bg-[#363636] text-white"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
+        >
+          <a
+            href="https://github.com/shahvivek2004/DoodleArt"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View on GitHub"
+            className="w-full h-full flex flex-row justify-center items-center"
+          >
+            <Github
+              width={18}
+              height={18}
+              strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+            />
+          </a>
+        </button>
       </div>
 
       {/* Share pop-up */}
@@ -292,6 +229,7 @@ export function Canvas({
         sharedKey={isShareModalOpen.sharedKey}
         roomId={isShareModalOpen.roomId}
         onClose={handleShareRoomModalClose}
+        theme={themeState.value === "b" ? "dark" : "light"}
       />
 
       {/* Instruction pop-up */}
@@ -306,120 +244,137 @@ export function Canvas({
 function ToolBar({
   selectedTool,
   setSelectedTool,
+  themeState,
+  setGameTool,
 }: {
   selectedTool: Tool;
   setSelectedTool: (s: Tool) => void;
+  themeState: { value: string };
+  setGameTool: (s: Tool) => void;
 }) {
   return (
-    <div className="flex flex-row bg-[#232329] h-16 w-md rounded-xl mt-4 gap-3 items-center text-center p-3 justify-center cursor-default">
+    <div
+      className={`flex flex-row ${themeState.value === "w" ? "bg-[#ffffff] shadow-[0_0_5px_rgba(0,0,0,0.25)] " : "bg-[#232329]"} h-12 w-[320px] rounded-xl mt-4 text-center justify-around cursor-default px-1`}
+    >
       <IconButton
-        onClick={() => setSelectedTool("grab")}
+        onClick={() => {
+          setSelectedTool("grab");
+          setGameTool("grab");
+        }}
         activated={selectedTool === "grab"}
-        icon={<Hand width={18} height={18} />}
+        icon={
+          <Hand
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Grab Tool"
         keyVal={1}
+        themeDefault={themeState.value === "b"}
       />
       <IconButton
-        onClick={() => setSelectedTool("cursor")}
+        onClick={() => {
+          setSelectedTool("cursor");
+          setGameTool("cursor");
+        }}
         activated={selectedTool === "cursor"}
-        icon={<MousePointer width={18} height={18} />}
+        icon={
+          <MousePointer
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Cursor Tool"
         keyVal={2}
+        themeDefault={themeState.value === "b"}
       />
       <IconButton
-        onClick={() => setSelectedTool("rect")}
+        onClick={() => {
+          setSelectedTool("rect");
+          setGameTool("rect");
+        }}
         activated={selectedTool === "rect"}
-        icon={<RectangleHorizontalIcon width={18} height={18} />}
+        icon={
+          <RectangleHorizontalIcon
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Rectangle Tool"
         keyVal={3}
+        themeDefault={themeState.value === "b"}
       />
       <IconButton
-        onClick={() => setSelectedTool("elip")}
+        onClick={() => {
+          setSelectedTool("elip");
+          setGameTool("elip");
+        }}
         activated={selectedTool === "elip"}
-        icon={<Circle width={18} height={18} />}
+        icon={
+          <Circle
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Ellipse Tool"
         keyVal={4}
+        themeDefault={themeState.value === "b"}
       />
       <IconButton
-        onClick={() => setSelectedTool("line")}
+        onClick={() => {
+          setSelectedTool("line");
+          setGameTool("line");
+        }}
         activated={selectedTool === "line"}
-        icon={<Slash width={18} height={18} />}
+        icon={
+          <Slash
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Line Tool"
         keyVal={5}
+        themeDefault={themeState.value === "b"}
       />
       <IconButton
-        onClick={() => setSelectedTool("pencil")}
+        onClick={() => {
+          setSelectedTool("pencil");
+          setGameTool("pencil");
+        }}
         activated={selectedTool === "pencil"}
-        icon={<Pencil width={18} height={18} />}
+        icon={
+          <Pencil
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Pencil Tool"
         keyVal={6}
+        themeDefault={themeState.value === "b"}
       />
       <IconButton
-        onClick={() => setSelectedTool("text")}
+        onClick={() => {
+          setSelectedTool("text");
+          setGameTool("text");
+        }}
         activated={selectedTool === "text"}
-        icon={<Type width={18} height={18} />}
+        icon={
+          <Type
+            width={15}
+            height={15}
+            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+          />
+        }
         label="Text Tool"
         keyVal={7}
+        themeDefault={themeState.value === "b"}
       />
     </div>
   );
 }
-
-// Side bar
-// <div className={`h-screen z-10 absolute ${getSidebarCursorClass(selectedTool)}`}>
-//     <div className="h-screen flex flex-col justify-center">
-//         <div className="flex flex-col gap-5 bg-[#232329] h-120 p-3 rounded-xl text-xs cursor-default">
-//             <div className="flex flex-col gap-3">
-//                 <div>Stroke</div>
-//                 <div className="flex flex-row gap-2">
-//                     <button onClick={() => { setToolConfig({ ...toolConfig, color: "white" }) }} className={`${getStrokeBorderDisplay("white")} rounded-md cursor-pointer`}><Tooltip label={getColorHex("white")}><div className="bg-white w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button onClick={() => { setToolConfig({ ...toolConfig, color: "red" }) }} className={`${getStrokeBorderDisplay("red")} rounded-md cursor-pointer`}><Tooltip label={getColorHex("red")}><div className="bg-red-400 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button onClick={() => { setToolConfig({ ...toolConfig, color: "yellow" }) }} className={`${getStrokeBorderDisplay("yellow")} rounded-md cursor-pointer`}><Tooltip label={getColorHex("yellow")}><div className="bg-yellow-400 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button onClick={() => { setToolConfig({ ...toolConfig, color: "green" }) }} className={`${getStrokeBorderDisplay("green")} rounded-md cursor-pointer`}><Tooltip label={getColorHex("green")}><div className="bg-green-400 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button onClick={() => { setToolConfig({ ...toolConfig, color: "blue" }) }} className={`${getStrokeBorderDisplay("blue")} rounded-md cursor-pointer`}><Tooltip label={getColorHex("blue")}><div className="bg-blue-400 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button onClick={() => { setToolConfig({ ...toolConfig, color: "purple" }) }} className={`${getStrokeBorderDisplay("purple")} rounded-md cursor-pointer`}><Tooltip label={getColorHex("purple")}><div className="bg-purple-400 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                 </div>
-//             </div>
-
-//             <div className="flex flex-col gap-3">
-//                 <div>Background</div>
-//                 <div className="flex flex-row gap-2">
-//                     <button className={`${getBackgroundBorderDisplay("transparent")} rounded-md cursor-pointer`} onClick={() => { setToolConfig({ ...toolConfig, bgColor: "transparent" }) }} ><Tooltip label={getBgColorHex("transparent")}><Image src="/t2.png" alt="transparent" width={1} height={1} className="w-5 h-5 rounded-sm bg-[#2f2f37]" /></Tooltip></button>
-//                     <button className={`${getBackgroundBorderDisplay("red")} rounded-md cursor-pointer`} onClick={() => { setToolConfig({ ...toolConfig, bgColor: "red" }) }} ><Tooltip label={getBgColorHex("red")}><div className="bg-red-300 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button className={`${getBackgroundBorderDisplay("yellow")} rounded-md cursor-pointer`} onClick={() => { setToolConfig({ ...toolConfig, bgColor: "yellow" }) }} ><Tooltip label={getBgColorHex("yellow")}><div className="bg-yellow-200 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button className={`${getBackgroundBorderDisplay("green")} rounded-md cursor-pointer`} onClick={() => { setToolConfig({ ...toolConfig, bgColor: "green" }) }} ><Tooltip label={getBgColorHex("green")}><div className="bg-green-200 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button className={`${getBackgroundBorderDisplay("blue")} rounded-md cursor-pointer`} onClick={() => { setToolConfig({ ...toolConfig, bgColor: "blue" }) }} ><Tooltip label={getBgColorHex("blue")}><div className="bg-blue-200 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                     <button className={`${getBackgroundBorderDisplay("purple")} rounded-md cursor-pointer`} onClick={() => { setToolConfig({ ...toolConfig, bgColor: "purple" }) }} ><Tooltip label={getBgColorHex("purple")}><div className="bg-purple-200 w-5 h-5 rounded-sm"></div></Tooltip></button>
-//                 </div>
-//             </div>
-
-//             <div className="flex flex-col gap-3">
-//                 <div>Stroke width</div>
-//                 <div className="flex flex-row gap-2">
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(2)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 2 }) }}><Tooltip label="Thin-line"><Image src="/line.svg" alt="thin-line" width={23} height={23} /></Tooltip></button>
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(4)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 4 }) }}><Tooltip label="Normal-line"><Image src="/line2.svg" alt="normal-line" width={23} height={23} /></Tooltip></button>
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeWidthBorderDisplay(8)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, strokeWidth: 8 }) }}><Tooltip label="Thick-line"><Image src="/line3.svg" alt="thick-line" width={23} height={23} /></Tooltip></button>
-//                 </div>
-//             </div>
-
-//             <div className="flex flex-col gap-3">
-//                 <div>Stroke style</div>
-//                 <div className="flex flex-row gap-2">
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeStyleBorderDisplay({ x: 1, y: 0 })) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, lineDashX: 1, lineDashY: 0 }) }}><Tooltip label="Normal-line"><Image src="/line.svg" alt="straight-line" width={23} height={23} /></Tooltip></button>
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeStyleBorderDisplay({ x: 16, y: 12 })) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, lineDashX: 16, lineDashY: 12 }) }}><Tooltip label="Dashed-line"><Image src="/dashedLine.svg" alt="straight-line" width={23} height={23} /></Tooltip></button>
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getStrokeStyleBorderDisplay({ x: 5, y: 8 })) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, lineDashX: 5, lineDashY: 8 }) }}><Tooltip label="Dotted-line"><Image src="/dottedLine.svg" alt="straight-line" width={23} height={23} /></Tooltip></button>
-//                 </div>
-//             </div>
-
-//             <div className="flex flex-col gap-3">
-//                 <div>Font-size</div>
-//                 <div className="flex flex-row gap-2">
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(20)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 20 }) }}><Tooltip label="Small"><Image src="/small.svg" alt="small-font" width={23} height={23} /></Tooltip></button>
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(40)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 40 }) }}><Tooltip label="Medium"><Image src="/medium.svg" alt="medium-font" width={23} height={23} /></Tooltip></button>
-//                     <button className={`p-1 rounded-lg cursor-pointer ${((getFontSize(80)) ? "bg-[#51419675]" : "bg-[#2e2d39] hover:bg-[#47425ed2]")}`} onClick={() => { setToolConfig({ ...toolConfig, fontSize: 80 }) }}><Tooltip label="Large"><Image src="/large.svg" alt="large-font" width={23} height={23} /></Tooltip></button>
-//                 </div>
-//             </div>
-
-//         </div>
-//     </div>
-// </div>

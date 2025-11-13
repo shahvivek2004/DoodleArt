@@ -1,6 +1,19 @@
+"use client";
+import { useEffect, useState } from "react";
 export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
+  const [theme, setTheme] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+    setTheme(storedTheme ?? "b");
+  }, []);
+
+  // Prevent rendering until theme is loaded
+  if (theme === null) return null;
   return (
-    <div className="bg-[#121212] min-h-screen flex items-center justify-center">
+    <div
+      className={`${theme === "w" ? "bg-white" : "bg-[#121212]"} min-h-screen flex items-center justify-center`}
+    >
       <div className="text-center space-y-6 p-8">
         {/* Icon */}
         <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
@@ -21,7 +34,9 @@ export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
 
         {/* Main message */}
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1
+            className={`text-3xl font-bold ${theme === "b" ? "text-white" : "text-black"} mb-2`}
+          >
             Authorization Required
           </h1>
           <p className="text-gray-400 text-lg">

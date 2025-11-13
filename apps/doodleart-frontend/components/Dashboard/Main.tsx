@@ -105,17 +105,11 @@ export function DashBoard() {
         withCredentials: true,
       });
 
-      // console.log('API Response:', response.data);
       // Check if the response has the rooms property
       const roomsData = response.data.rooms || [];
       const nfl: string = response.data.nfl;
-
       const favMap = await getFavorites();
-      // console.log("Favorites check!");
-      // console.log(favMap);
       const trashMap = await getTrashData();
-      // console.log("Trash Check!");
-      // console.log(trashMap);
 
       // Transform the data to match our UI requirements
       const transformedRooms = roomsData.map((room: Room) => {
@@ -129,14 +123,15 @@ export function DashBoard() {
         };
       });
 
-      //console.log(transformedRooms);
-      // console.log(response.data);
       const recentRooms = transformedRooms.slice(-5);
       setFirstLetter(nfl.toUpperCase());
       setData(transformedRooms);
       setProjects(recentRooms);
       setIsAuthenticatd(true);
       setLoading(false);
+      if (!localStorage.getItem("theme")) {
+        localStorage.setItem("theme", "b");
+      }
     } catch (error) {
       const err = error as AxiosError;
       console.log(err.response?.status);
@@ -147,24 +142,6 @@ export function DashBoard() {
       }
     }
   }
-
-  // const handleActiveTab = (currTab: string) => {
-  //   if (currTab == "recent") {
-  //     const filltered = data.filter((p) => !p.isInTrash);
-  //     const finalFilltered = filltered.slice(-5);
-  //     setProjects(finalFilltered);
-  //   } else if (currTab == "starred") {
-  //     const filltered = data.filter((p) => p.isFavourite && !p.isInTrash);
-  //     setProjects(filltered);
-  //   } else if (currTab == "alldraw") {
-  //     const filltered = data.filter((p) => !p.isInTrash);
-  //     setProjects(filltered);
-  //   } else if (currTab == "trash") {
-  //     const filltered = data.filter((p) => p.isInTrash);
-  //     setProjects(filltered);
-  //   }
-  //   //console.log(projects);
-  // };
 
   const toggleFavorite = async (roomId: number) => {
     const updatedProjects = data.map((project) =>
@@ -227,7 +204,6 @@ export function DashBoard() {
 
   // Handle Signout
   const handleSignout = async () => {
-    // setActiveTab('logout');
     setAbuseLoad(true);
     try {
       await axios.post(
@@ -265,7 +241,7 @@ export function DashBoard() {
   };
 
   if (loading) {
-    return <Loader />;
+    return <Loader theme="b" />;
   }
 
   if (!isAuthenticated) {
@@ -576,6 +552,7 @@ export function DashBoard() {
             sharedKey={isShareModalOpen.sharedKey}
             roomId={isShareModalOpen.roomId}
             onClose={handleShareRoomModalClose}
+            theme="dark"
           />
 
           <Instruction
@@ -634,4 +611,3 @@ function timeAgo(dateString: string): string {
   return "just now";
 }
 
-// color - #5f00a3

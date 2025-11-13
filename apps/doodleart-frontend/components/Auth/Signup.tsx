@@ -26,7 +26,7 @@ export function SignUp() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    // e.preventDefault();
     setLoading(true);
 
     const result = requiredBodySignup.safeParse(form);

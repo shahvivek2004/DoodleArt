@@ -9,7 +9,7 @@ export class TextBox {
     private isFinalized: boolean = false;
 
 
-    constructor(parX: number, parY: number, x: number, y: number, content: string, context: CanvasRenderingContext2D, scale: number, app: Game, color: string, strokeWidth: number, fontSize: number) {
+    constructor(parX: number, parY: number, x: number, y: number, context: CanvasRenderingContext2D, scale: number, app: Game, color: string, strokeWidth: number, fontSize: number, themeDefault: boolean, dpr: number) {
         this.context = context;
         this.x = x;
         this.y = y;
@@ -20,18 +20,19 @@ export class TextBox {
         this.textbox.style.resize = "none";
         this.textbox.style.overflow = "hidden";
         this.textbox.style.backgroundColor = "transparent";
-        this.textbox.style.width = `${this.app.canvas.width - parX}px`;
-        this.textbox.style.height = `${this.app.canvas.height - parY}px`;
+        this.textbox.style.width = `${(this.app.canvas.width / dpr - parX)}px`;
+        this.textbox.style.height = `${(this.app.canvas.height / dpr - parY)}px`;
         this.textbox.style.position = "absolute";
         this.textbox.style.top = `${parY}px`;
         this.textbox.style.left = `${parX}px`;
         this.textbox.style.border = "none";
         this.textbox.style.outline = "none";
-        this.textbox.style.color = "white";
+        this.textbox.style.color = `${themeDefault ? "white" : "black"}`;
         this.textbox.style.fontWeight = "bold";
         this.textbox.style.fontSize = `${fontSize * scale}px`;
         this.textbox.style.fontFamily = "Finger Paint";
-        this.textbox.value = content;
+        this.textbox.style.caretColor = `${themeDefault ? "white" : "black"}`
+        this.textbox.value = "";
         // this.textbox.placeholder = "Type here...";
         this.app.canvas.parentElement?.appendChild(this.textbox);
         this.textbox.focus();
@@ -46,7 +47,6 @@ export class TextBox {
 
             const trimmedValue = this.textbox.value;
             const lines = this.textbox.value.split(/\r?\n/);
-            //console.log(lines);
 
             if (trimmedValue.length > 0) {
                 this.context.save();
@@ -69,8 +69,6 @@ export class TextBox {
                     nol: lines.length,
                 };
 
-                // this.app.existingShapes.push(textShape);
-
                 this.app.socket.send(JSON.stringify({
                     type: "chat-insert",
                     message: JSON.stringify(textShape),
@@ -78,17 +76,19 @@ export class TextBox {
                 }));
             }
 
-            this.textbox.removeEventListener('blur', blurEvent);
 
-            if (this.textbox.parentElement) {
-                this.app.canvas.parentElement?.removeChild(this.textbox);
-            }
             this.app.isWriting = false;
             this.app.activeTextBox = undefined;
             this.app.setTool("cursor");
             if (this.app.onToolChange) {
                 this.app.onToolChange("cursor");
             }
+
+            this.textbox.removeEventListener('blur', blurEvent);
+            if (this.textbox.parentElement) {
+                this.app.canvas.parentElement?.removeChild(this.textbox);
+            }
+
         };
         this.textbox.addEventListener('blur', blurEvent);
     }

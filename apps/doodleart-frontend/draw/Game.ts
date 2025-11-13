@@ -74,11 +74,7 @@ export class Game {
     private lastScale: number;
     private lastSavedPan: { x: number, y: number } = { x: 0, y: 0 };
     private savePanTimeout: number | undefined;
-
     private saveScaleTimeout: number | undefined;
-    // Add debouncing for canvas rect updates
-    private resizeTimeout: number | null = null;
-    private rectUpdateTimeout: number | null = null;
     private isSelecting: boolean;
     private detectedShape: Shape | null;
     private selectedShape: Shape | null;
@@ -89,13 +85,24 @@ export class Game {
     private clipboard: Shape | null;
     private liveMouseX: number;
     private liveMouseY: number;
+    private canvasThemeStyle: string;
+    private canvasBgColor: string
+    private canvasStrokeColor: string;
+    private canvasStrokeWidth: number;
+    private canvasFontType: string;
+    private canvasFontColor: string;
+    private canvasPreviewStrokeColor: string;
+    private canvasPreviewStrokeWidth: number;
+    private canvasSelectorStroke: string;
+    private canvasSelectorStrokeWidth: number;
+    private dpr: number;
     constructor(
         canvas: HTMLCanvasElement,
         roomId: string,
         socket: WebSocket,
         sharedKey: string,
-        onToolChange?: (tool: Tool) => void,
     ) {
+        this.dpr = window.devicePixelRatio || 1;
         this.canvas = canvas;
         this.context = canvas.getContext('2d', { alpha: false })!;
         this.context.strokeStyle = "rgba(255, 255, 255)";
@@ -109,7 +116,6 @@ export class Game {
         this.panX = 0;
         this.panY = 0;
         this.canvasRect = canvas.getBoundingClientRect();
-        this.onToolChange = onToolChange || null;
         this.lastScale = this.scale = Number(localStorage.getItem("scale")) || 1;
         this.lastSavedPan.x = this.panX = Number(localStorage.getItem("px")) || 0;
         this.lastSavedPan.y = this.panY = Number(localStorage.getItem("py")) || 0;
@@ -121,14 +127,20 @@ export class Game {
         this.clipboard = null;
         this.liveMouseX = 0;
         this.liveMouseY = 0;
+        this.canvasThemeStyle = "b";
+        this.canvasBgColor = "#121212";
+        this.canvasStrokeColor = "white";
+        this.canvasStrokeWidth = 3;
+        this.canvasFontType = `20px "Finger Paint"`;
+        this.canvasFontColor = "white";
+        this.canvasPreviewStrokeColor = "white";
+        this.canvasPreviewStrokeWidth = 3;
+        this.canvasSelectorStroke = "#b15cff";
+        this.canvasSelectorStrokeWidth = 1.5;
         this.init();
         this.initHandlers();
         this.initMouseHandlers();
         this.initZoomHandlers();
-        window.addEventListener('resize', this.debouncedUpdateCanvasRect);
-
-        // Also listen for scroll events that might affect canvas position
-        window.addEventListener('scroll', this.debouncedUpdateCanvasRect, { passive: true });
     }
 
     savePanPostions = () => {
@@ -150,16 +162,6 @@ export class Game {
             }, 300);
             this.lastScale = this.scale;
         }
-    }
-
-    // Debounced canvas rect update to prevent frequent recalculations
-    debouncedUpdateCanvasRect = () => {
-        if (this.resizeTimeout) {
-            clearTimeout(this.resizeTimeout);
-        }
-        this.resizeTimeout = window.setTimeout(() => {
-            this.updateCanvasRect();
-        }, 100); // Reduced from 300ms for more responsiveness
     }
 
     updateCanvasRect = () => {
@@ -193,10 +195,35 @@ export class Game {
         this.render();
     }
 
+    setTheme(themeStateValue: string) {
+        this.canvasThemeStyle = themeStateValue;
+        if (this.canvasThemeStyle === "b") {
+            // dark theme enable
+            this.canvasBgColor = "#121212";
+            this.canvasStrokeColor = "white"
+            this.canvasFontColor = "white";
+            this.canvasPreviewStrokeColor = "white";
+            this.canvasSelectorStroke = "#af4fff";
+            this.canvasSelectorStrokeWidth = 1.5;
+        } else {
+            // light theme enable
+            this.canvasBgColor = "#ffffff";
+            this.canvasStrokeColor = "black";
+            this.canvasFontColor = "black";
+            this.canvasPreviewStrokeColor = "black";
+            this.canvasSelectorStroke = "#8400ff";
+            this.canvasSelectorStrokeWidth = 1;
+        }
+    }
+
     async init() {
         try {
             this.existingShapes = await getExistingShapes(this.roomId, this.sharedKey);
-            //console.log(this.existingShapes);
+            const themeState = localStorage.getItem("theme") || "b"
+            this.setTheme(themeState);
+            if (this.onToolChange) {
+                this.onToolChange("grab");
+            }
         } catch {
             //console.error("Failed to load existing shapes:", error);
             this.existingShapes = [];
@@ -208,15 +235,16 @@ export class Game {
         this.socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
             if (message.type === "self") {
-                // console.log("self");
                 const chatid = message.chatId;
                 this.panX = Number(localStorage.getItem("px")) || 0;
                 this.panY = Number(localStorage.getItem("py")) || 0;
                 this.scale = Number(localStorage.getItem("scale")) || 1;
                 const parsedShape: Shape = JSON.parse(message.message);
                 const newShape: Shape = { ...parsedShape, id: chatid };
+                this.detectedShape = newShape;
+                this.selectedShape = newShape;
+                this.isSelecting = true;
                 this.existingShapes.push(newShape);
-                //console.log(this.existingShapes);
                 this.render();
 
             } else if (message.type === "chat-insert") {
@@ -255,37 +283,26 @@ export class Game {
     }
 
     initMouseHandlers() {
-        this.canvas.addEventListener('mousedown', this.mouseDownHandler);
-        window.addEventListener('mouseup', this.mouseUpHandler);
-        window.addEventListener('mousemove', this.mouseMoveHandler);
+        this.canvas.addEventListener('pointerdown', this.pointDownHandler);
+        window.addEventListener('pointerup', this.pointUpHandler);
+        window.addEventListener('pointermove', this.pointMoveHandler);
         this.canvas.addEventListener('dblclick', this.doubleClickHandler);
         window.addEventListener('keydown', this.keyDownHandler);
-        // Add mouse leave handler to clean up state
-        // this.canvas.addEventListener('mouseleave', this.mouseLeaveHandler);
     }
 
     initZoomHandlers() {
         this.canvas.addEventListener('wheel', this.wheelHandler, { passive: false });
+        document.addEventListener('wheel', this.preventBrowserZoom, { passive: false });
     }
 
     destroyMouseHandlers() {
-        this.canvas.removeEventListener('mousedown', this.mouseDownHandler);
-        window.removeEventListener('mouseup', this.mouseUpHandler);
-        window.removeEventListener('mousemove', this.mouseMoveHandler);
-        //this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandler);
-        this.canvas.removeEventListener('wheel', this.wheelHandler);
+        this.canvas.removeEventListener('pointerdown', this.pointDownHandler);
+        window.removeEventListener('pointerup', this.pointUpHandler);
+        window.removeEventListener('pointermove', this.pointMoveHandler);
+        this.canvas.removeEventListener('wheel', this.wheelHandler, { passive: false } as AddEventListenerOptions);
+        document.removeEventListener('wheel', this.preventBrowserZoom, { passive: false } as AddEventListenerOptions);
         this.canvas.removeEventListener('dblclick', this.doubleClickHandler);
         window.removeEventListener('keydown', this.keyDownHandler);
-        window.removeEventListener('resize', this.debouncedUpdateCanvasRect);
-        window.removeEventListener('scroll', this.debouncedUpdateCanvasRect);
-
-        // Clear timeouts
-        if (this.resizeTimeout) {
-            clearTimeout(this.resizeTimeout);
-        }
-        if (this.rectUpdateTimeout) {
-            clearTimeout(this.rectUpdateTimeout);
-        }
     }
 
     registerToolChangeCallback(callback: (tool: Tool) => void) {
@@ -334,6 +351,12 @@ export class Game {
         }
     }
 
+    preventBrowserZoom = (e: WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+        }
+    }
+
     screenToWorld(screenX: number, screenY: number) {
         const canvasCoords = this.getCanvasCoordinates(screenX, screenY);
         return {
@@ -343,8 +366,6 @@ export class Game {
     }
 
     getCanvasCoordinates(clientX: number, clientY: number) {
-        // Always use fresh canvas rect for critical operations
-        // but use cached version for less critical operations
         return {
             x: clientX - this.canvasRect.left,
             y: clientY - this.canvasRect.top
@@ -388,6 +409,17 @@ export class Game {
         }
     }
 
+    highDPI(dpr: number) {
+        const rect = this.canvas.getBoundingClientRect();
+
+        this.dpr = dpr;
+
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+
+        this.updateCanvasRect();
+    }
+
     render() {
         this.context.save();
 
@@ -395,17 +427,17 @@ export class Game {
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.context.fillStyle = "#121212";
+        this.context.fillStyle = this.canvasBgColor;
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
+        this.context.setTransform(this.scale * this.dpr, 0, 0, this.scale * this.dpr, this.panX * this.dpr, this.panY * this.dpr);
 
-        this.context.strokeStyle = "rgba(255, 255, 255)";
-        this.context.lineWidth = 3;
-        this.context.font = `20px "Finger Paint"`;
-        this.context.fillStyle = "white";
+        this.context.strokeStyle = this.canvasStrokeColor;
+        this.context.lineWidth = this.canvasStrokeWidth;
+        this.context.font = this.canvasFontType;
+        this.context.fillStyle = this.canvasFontColor;
 
-        this.existingShapes.forEach((shape) => {
+        this.existingShapes.forEach(shape => {
             if (this.isShapeVisible(shape)) {
                 this.drawShape(shape);
             }
@@ -436,18 +468,6 @@ export class Game {
             this.context.closePath();
             this.context.stroke();
         } else if (shape.type === "pencil") {
-
-            // old
-            // if (shape.pencilCoords.length > 0) {
-            //     this.context.beginPath();
-            //     this.context.lineCap = "round";
-            //     this.context.lineJoin = "round";
-            //     this.context.moveTo(shape.pencilCoords[0].x, shape.pencilCoords[0].y);
-            //     for (let i = 1; i < shape.pencilCoords.length; i++) {
-            //         this.context.lineTo(shape.pencilCoords[i].x, shape.pencilCoords[i].y);
-            //     }
-            //     this.context.stroke();
-            // }
 
             if (shape.pencilCoords && shape.pencilCoords.length > 0) {
                 this.context.beginPath();
@@ -521,8 +541,8 @@ export class Game {
         }
     }
 
-    mouseDownHandler = (e: MouseEvent) => {
-        // Ensure canvas rect is current before any coordinate calculations
+    pointDownHandler = (e: PointerEvent) => {
+
         this.updateCanvasRect();
 
         this.clicked = true;
@@ -536,13 +556,17 @@ export class Game {
         }
 
         if (this.selectedTool === "cursor") {
-            if (this.detectedShape) {
-                this.selectedShape = this.detectedShape;
+            const shapeOnClick = this.getElement(worldCoords.x, worldCoords.y);
+            if (shapeOnClick) {
+                this.detectedShape = shapeOnClick;
+                this.selectedShape = shapeOnClick;
                 this.isSelecting = true;
                 const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
                 this.lastMouseShapeX = screenCoords.x;
                 this.lastMouseShapeY = screenCoords.y;
-            } else {
+            }
+            else {
+                this.detectedShape = null;
                 this.selectedShape = null;
                 this.isSelecting = false;
             }
@@ -562,8 +586,10 @@ export class Game {
         }
     }
 
-    mouseMoveHandler = (e: MouseEvent) => {
+    pointMoveHandler = (e: PointerEvent) => {
         const worldCoords = this.screenToWorld(e.clientX, e.clientY);
+        const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
+
         if (!this.clicked) {
             this.liveMouseX = worldCoords.x;
             this.liveMouseY = worldCoords.y;
@@ -572,34 +598,18 @@ export class Game {
                 const shape = this.getElement(worldCoords.x, worldCoords.y);
 
                 if (shape!) {
-                    this.detectedShape = shape;
                     if (this.onSelectChange) {
                         this.onSelectChange(true);
                     }
                     return;
                 }
 
-                if (this.selectedShape) {
-                    this.isSelecting = false;
-                    this.detectedShape = null;
-                    if (this.onSelectChange) {
-                        this.onSelectChange(false);
-                    }
-                    return;
-                }
-
-                this.detectedShape = null;
-                this.selectedShape = null;
-                this.isSelecting = false;
                 if (this.onSelectChange) {
                     this.onSelectChange(false);
                 }
             }
             return;
         }
-
-
-        const screenCoords = this.getCanvasCoordinates(e.clientX, e.clientY);
 
         // individual shape movement
         if (this.selectedTool === "cursor" && this.isSelecting && this.selectedShape) {
@@ -678,11 +688,11 @@ export class Game {
                     const prevPoint = this.pencilCoords[lastIndex - 1];
 
                     this.context.save();
-                    this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
+                    this.context.setTransform(this.scale * this.dpr, 0, 0, this.scale * this.dpr, this.panX * this.dpr, this.panY * this.dpr);
 
                     this.context.beginPath();
-                    this.context.strokeStyle = "rgba(255, 255, 255)";
-                    this.context.lineWidth = 2 / this.scale;
+                    this.context.strokeStyle = this.canvasPreviewStrokeColor;
+                    this.context.lineWidth = this.canvasPreviewStrokeWidth;
                     this.context.lineCap = "round";
                     this.context.lineJoin = "round";
                     this.context.moveTo(prevPoint.x, prevPoint.y);
@@ -699,9 +709,9 @@ export class Game {
             this.render();
             // Draw preview
             this.context.save();
-            this.context.strokeStyle = "rgba(255, 255, 255, 0.8)";
-            this.context.lineWidth = 2;
-            this.context.setTransform(this.scale, 0, 0, this.scale, this.panX, this.panY);
+            this.context.strokeStyle = this.canvasPreviewStrokeColor;
+            this.context.lineWidth = this.canvasPreviewStrokeWidth;
+            this.context.setTransform(this.scale * this.dpr, 0, 0, this.scale * this.dpr, this.panX * this.dpr, this.panY * this.dpr);
             this.drawPreview(
                 { x: this.startX, y: this.startY },
                 { x: worldCoords.x, y: worldCoords.y }
@@ -710,13 +720,15 @@ export class Game {
         }
     }
 
-    mouseUpHandler = (e: MouseEvent) => {
+    pointUpHandler = (e: PointerEvent) => {
         if (!this.clicked) return;
         this.clicked = false;
 
         const worldCoords = this.screenToWorld(e.clientX, e.clientY);
         const width = worldCoords.x - this.startX;
         const height = worldCoords.y - this.startY;
+        this.liveMouseX = worldCoords.x;
+        this.liveMouseY = worldCoords.y;
 
         let shape: Shape | null = null;
 
@@ -777,10 +789,9 @@ export class Game {
                 e.clientY,
                 worldCoords.x,
                 worldCoords.y,
-                "",
                 this.context,
                 this.scale,
-                this, "#ffffff", 3, 20
+                this, "#ffffff", 3, 20, (this.canvasThemeStyle === "b"), this.dpr
             );
             return;
         } else if (this.selectedTool === "grab") {
@@ -801,7 +812,6 @@ export class Game {
 
         if (shape) {
             //this.existingShapes.push(shape);
-
             this.socket.send(JSON.stringify({
                 type: "chat-insert",
                 message: JSON.stringify(shape),
@@ -828,10 +838,9 @@ export class Game {
                 e.clientY,
                 worldCoords.x,
                 worldCoords.y,
-                "",
                 this.context,
                 this.scale,
-                this, "#ffffff", 3, 20
+                this, "#ffffff", 3, 20, (this.canvasThemeStyle === "b"), this.dpr
             );
         }
     }
@@ -996,7 +1005,7 @@ export class Game {
             const y2 = shape.y + shape.height
 
             // return (x > x1 && x < x2 && y > y1 && y < y2);
-            const tolerance = 8;
+            const tolerance = 10 / this.scale;
             const onLeft = (y >= y1 && y <= y2 && Math.abs(x - x1) <= tolerance);
             const onRight = (y >= y1 && y <= y2 && Math.abs(x - x2) <= tolerance);
             const onTop = (x >= x1 && x <= x2 && Math.abs(y - y1) <= tolerance);
@@ -1010,7 +1019,7 @@ export class Game {
             const b = shape.radiusY;
             const p = (((x - h) * (x - h)) / (a * a)) + (((y - k) * (y - k)) / (b * b));
             // return p <= 1.0;
-            const tolerance = 0.1; // smaller → stricter edge detection
+            const tolerance = 0.15 / this.scale; // smaller → stricter edge detection
             return Math.abs(p - 1) <= tolerance;
         } else if (shape.type === "line") {
             return this.lineCheck(x, y, shape.startX, shape.startY, shape.endX, shape.endY);
@@ -1057,7 +1066,7 @@ export class Game {
         const cross = (dy) * (x - a1) - (dx) * (y - b1);
         const distToLine = Math.abs(cross) / length;
 
-        const tolerance = 5;
+        const tolerance = 10 / this.scale;
         if (distToLine > tolerance) return false;
 
         const withinX = (x >= Math.min(a1, a2) - tolerance && x <= Math.max(a1, a2) + tolerance);
@@ -1071,8 +1080,8 @@ export class Game {
 
     selector = (shape: Shape) => {
         this.context.save();
-        this.context.strokeStyle = "#ba70ff";//#9f8aff
-        this.context.lineWidth = 1.5 / this.scale;
+        this.context.strokeStyle = this.canvasSelectorStroke;
+        this.context.lineWidth = this.canvasSelectorStrokeWidth / this.scale;
         if (shape.type === "rect") {
             const X = shape.x;
             const Y = shape.y;
@@ -1172,15 +1181,19 @@ export class Game {
     }
 
     selectorShape = (X: number, Y: number, W: number, H: number) => {
-        const P = 10 / this.scale; // choosen homogenous P-(for padding) (so x=y)
-        const sqr = 10 / this.scale; // square, so width = heigth = 10
+        const P = 8 / this.scale; // choosen homogenous P-(for padding) (so x=y)
+        const sqr = 8 / this.scale; // square, so width = heigth = 10
 
         this.context.beginPath();
 
-        this.context.roundRect(X - P - (sqr / 2), Y - P - (sqr / 2), sqr, sqr, [2.35 / this.scale]); // top-left sqaure
-        this.context.roundRect(X - P - (sqr / 2), Y + H + P - (sqr / 2), sqr, sqr, [2.35 / this.scale]); //bottom-left sqaure
-        this.context.roundRect(X + W + P - (sqr / 2), Y - P - (sqr / 2), sqr, sqr, [2.35 / this.scale]); // top-right sqaure
-        this.context.roundRect(X + W + P - (sqr / 2), Y + H + P - (sqr / 2), sqr, sqr, [2.35 / this.scale]); // bottom-right sqaure
+        // top-circle
+        this.context.ellipse((2 * X + W) / 2, Y - 3 * P, 4 / this.scale, 4 / this.scale, 0, 0, 2 * Math.PI);
+
+        // four-sqaures
+        this.context.roundRect(X - P - (sqr / 2), Y - P - (sqr / 2), sqr, sqr, [2.15 / this.scale]); // top-left sqaure
+        this.context.roundRect(X - P - (sqr / 2), Y + H + P - (sqr / 2), sqr, sqr, [2.15 / this.scale]); //bottom-left sqaure
+        this.context.roundRect(X + W + P - (sqr / 2), Y - P - (sqr / 2), sqr, sqr, [2.15 / this.scale]); // top-right sqaure
+        this.context.roundRect(X + W + P - (sqr / 2), Y + H + P - (sqr / 2), sqr, sqr, [2.15 / this.scale]); // bottom-right sqaure
 
         // left-line
         this.context.moveTo(X - P, Y - P + (sqr / 2));
@@ -1197,7 +1210,7 @@ export class Game {
         // bottom-line
         this.context.moveTo(X - P + (sqr / 2), Y + H + P);
         this.context.lineTo(X + W + P - (sqr / 2), Y + H + P);
-
+        this.context.closePath();
         this.context.stroke();
     }
 
