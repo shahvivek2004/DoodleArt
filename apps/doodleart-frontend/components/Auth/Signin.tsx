@@ -23,8 +23,8 @@ export function SignIn() {
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    // e.preventDefault();
     setLoading(true);
 
     const result = requiredBodySignin.safeParse(form);
@@ -134,7 +134,7 @@ export function SignIn() {
             className="flex flex-col items-center gap-5 w-full"
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit(e);
+              handleSubmit();
             }}
           >
             {/* Input tags */}

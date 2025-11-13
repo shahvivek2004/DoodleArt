@@ -1,4 +1,3 @@
-
 //import { SharedRooms } from "@/components/Auth/SharedRooms";
 import { CanvasPg } from "@/components/Auth/CanvasPage";
 
@@ -14,5 +13,5 @@ export default async function CanvasPage({ params }: PageProps) {
   // console.log(roomId);
   // return <SharedRooms id={roomId} />;
 
-  return <CanvasPg roomId={roomId}/>
+  return <CanvasPg roomId={roomId} />;
 }

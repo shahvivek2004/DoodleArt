@@ -25,8 +25,8 @@ export function SignUp() {
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    // e.preventDefault();
     setLoading(true);
 
     const result = requiredBodySignup.safeParse(form);
@@ -136,7 +136,7 @@ export function SignUp() {
             className="flex flex-col items-center gap-5 w-full"
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit(e);
+              handleSubmit();
             }}
           >
             {/* Input Tags */}
