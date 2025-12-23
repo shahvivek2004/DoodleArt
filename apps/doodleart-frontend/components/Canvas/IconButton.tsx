@@ -19,7 +19,7 @@ export function IconButton({
   return (
     <Tooltip label={label}>
       <button
-        className={`cursor-pointer h-8 w-8 px-1 flex border-1 border-transparent rounded-md ${themeDefault ? "text-white active:border-white" : "text-[#27272a] active:border-purple-500"} ${themeDefault ? (activated ? "bg-[#a12fffa1]" : "hover:bg-[#47425e75]") : activated ? "bg-[#6a00ff8a]" : "hover:bg-[#47425e26]"} flex-row items-center justify-center`}
+        className={`cursor-pointer h-8 w-8 px-1 flex border border-transparent rounded-md ${themeDefault ? "text-white active:border-white" : "text-[#27272a] active:border-purple-500"} ${themeDefault ? (activated ? "bg-[#a12fffa1]" : "hover:bg-[#47425e75]") : activated ? "bg-[#6a00ff8a]" : "hover:bg-[#47425e26]"} flex-row items-center justify-center`}
         onClick={onClick}
       >
         <div className="flex flex-col flex-1 justify-center items-center">

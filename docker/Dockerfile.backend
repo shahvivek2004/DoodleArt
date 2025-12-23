@@ -63,7 +63,7 @@ COPY ./packages/fullstack-common/src ./packages/fullstack-common/src
 
 COPY --from=builder /app/apps/http-backend/dist ./apps/http-backend/dist
 
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.8.3__typescript@5.8.3/ ./node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.8.3__typescript@5.8.3/ 
+COPY --from=builder /app/node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.9.3__typescript@5.9.3/ ./node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.9.3__typescript@5.9.3/
 
 EXPOSE 4000  
 

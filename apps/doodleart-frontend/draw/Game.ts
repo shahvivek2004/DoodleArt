@@ -723,7 +723,7 @@ export class Game {
           ...this.selectedShape,
           pencilCoords: this.selectedShape.pencilCoords.map((p) => ({ ...p })),
         };
-        let len = newShape.pencilCoords.length;
+        const len = newShape.pencilCoords.length;
         for (let i = 0; i < len; i++) {
           newShape.pencilCoords[i].x += worldDeltaX;
           newShape.pencilCoords[i].y += worldDeltaY;
@@ -786,10 +786,13 @@ export class Game {
           this.context.restore();
         }
       }
-    } else {
-      // Handle preview for other tools
+    } else if (
+      this.selectedTool === "rect" ||
+      this.selectedTool === "elip" ||
+      this.selectedTool === "line"
+    ) {
       this.render();
-      // Draw preview
+
       this.context.save();
       this.context.strokeStyle = this.canvasPreviewStrokeColor;
       this.context.lineWidth = this.canvasPreviewStrokeWidth;

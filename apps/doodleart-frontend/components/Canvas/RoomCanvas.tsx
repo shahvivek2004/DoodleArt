@@ -19,13 +19,12 @@ export function RoomCanvas({
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(true);
-  const [theme, setTheme] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
-    setTheme(storedTheme ?? "b");
-  }, []);
+  const [theme] = useState<string>(() => {
+    if (typeof window === "undefined") return "b";
+    return localStorage.getItem("theme") ?? "b";
+  });
 
   const handleQuit = () => {
     try {
@@ -115,7 +114,7 @@ export function RoomCanvas({
 
   if (theme === null) return null;
 
-  if (isLoading || !socket) {
+  if (isLoading) {
     return <Loader theme={theme} />;
   }
 
@@ -128,7 +127,43 @@ export function RoomCanvas({
   }
 
   if (error) {
-    return <div className="text-red-500 py-4">{error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#121212]">
+        <div className="text-center p-8 space-y-6 max-w-md">
+          <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 text-red-400 text-3xl font-bold">!</div>
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Something went wrong
+            </h1>
+            <p className="text-gray-400">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!socket) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#121212]">
+        <div className="text-center p-8 space-y-6 max-w-md">
+          <div className="mx-auto w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 text-orange-400 text-2xl font-bold">⚡</div>
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Connection Lost
+            </h1>
+            <p className="text-gray-400">
+              No connection found. Please refresh the page to reconnect.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

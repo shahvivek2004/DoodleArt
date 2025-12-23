@@ -25,18 +25,23 @@ export const FE_URL = process.env.FE_URL;
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const EXP_TIME = process.env.EXP_TIME;
 // prod
+// const cookieConfig = {
+//   domain: ".doodleart.live",
+//   httpOnly: true,
+//   secure: true,
+//   sameSite: "lax" as const,
+//   maxAge: 1000 * 60 * 60 * 24 * 4,
+// };
+//dev
 const cookieConfig = {
-  domain: ".doodleart.live",
   httpOnly: true,
   secure: true,
   sameSite: "lax" as const,
   maxAge: 1000 * 60 * 60 * 24 * 4,
 };
-//dev
-//const cookieConfig = { httpOnly: true, secure: true, sameSite: 'lax' as const, maxAge: (1000 * 60 * 60 * 24 * 4) };
 const app = express();
 
-app.use(helmet());
+app.use(helmet() as unknown as express.RequestHandler);
 app.use(json());
 app.use(cookieParser());
 app.use(

@@ -1,7 +1,5 @@
-"use client";
-
-import NavBar from "@/components/Home/NavBar";
-import SideBar from "@/components/Home/SideBar";
+import NavBar from "@/components/LandingPage/NavBarComponent/NavBar";
+import SideBar from "@/components/LandingPage/SideBarComponent/SideBar";
 import { Github, Linkedin, Mail } from "lucide-react";
 import Image from "next/image";
 
@@ -107,7 +105,7 @@ export default function AboutPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-16 h-16 bg-linear-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
                   <span className="text-white font-bold text-2xl">VS</span>
                 </div>
                 <div>

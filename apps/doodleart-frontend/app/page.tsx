@@ -1,6 +1,6 @@
-import Card from "@/components/Home/Card";
-import NavBar from "@/components/Home/NavBar";
-import SideBar from "@/components/Home/SideBar";
+import Card from "@/components/LandingPage/CardComponent/Card";
+import NavBar from "@/components/LandingPage/NavBarComponent/NavBar";
+import SideBar from "@/components/LandingPage/SideBarComponent/SideBar";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       <SideBar />
 
       {/* Main Content */}
-      <div className="flex-grow flex flex-col text-center lg:mt-15 overflow-auto">
+      <div className="grow flex flex-col text-center lg:mt-15 overflow-auto">
         {/* Heading */}
         <h1 className="text-3xl md:text-4xl lg:text-5xl text-[#6223b4] mt-10 font-semibold">
           Online <span className="bg-[#23cb6369] rounded-xl p-1">Canvas</span>{" "}

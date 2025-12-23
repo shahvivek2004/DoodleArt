@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
-import { HTTP_URL } from "@/middleware";
+import { HTTP_URL } from "@/proxy";
 
 interface CreateRoomModalProps {
   isOpen: boolean;

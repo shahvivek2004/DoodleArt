@@ -9,9 +9,5 @@ interface PageProps {
 
 export default async function CanvasPage({ params }: PageProps) {
   const { roomId } = await params;
-
-  // console.log(roomId);
-  // return <SharedRooms id={roomId} />;
-
   return <CanvasPg roomId={roomId} />;
 }

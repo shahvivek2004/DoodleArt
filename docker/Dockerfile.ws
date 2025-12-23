@@ -54,7 +54,7 @@ COPY ./packages/db/src ./packages/db/src
 
 COPY --from=builder /app/apps/ws-backend/dist ./apps/ws-backend/dist
 
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.8.3__typescript@5.8.3 ./node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.8.3__typescript@5.8.3
+COPY --from=builder /app/node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.9.3__typescript@5.9.3/ ./node_modules/.pnpm/@prisma+client@6.12.0_prisma@6.12.0_typescript@5.9.3__typescript@5.9.3/
 
 EXPOSE 8080
 

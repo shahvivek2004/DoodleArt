@@ -1,6 +1,6 @@
 // ShareRoomModal.tsx
 "use client";
-import { FE_URL } from "@/middleware";
+import { FE_URL } from "@/proxy";
 import { Check, Clipboard, X } from "lucide-react";
 import { useState } from "react";
 
@@ -112,7 +112,7 @@ export function ShareRoomModal({
 
           <p className="mt-8 text-sm text-red-500 font-medium flex items-center gap-1">
             <svg
-              className="w-4 h-4 flex-shrink-0"
+              className="w-4 h-4 shrink-0"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"

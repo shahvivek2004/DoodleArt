@@ -31,7 +31,8 @@ const fingerPaint = Finger_Paint({
 
 export const metadata: Metadata = {
   title: "DoodleArt",
-  description: "Online real-time canvas app",
+  description:
+    "Online real-time free opensource canvas app or whiteboard app with cloud backup to create your art seamlessly and smoothly",
 };
 
 export default function RootLayout({

@@ -1,12 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
-  const [theme, setTheme] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
-    setTheme(storedTheme ?? "b");
-  }, []);
+  const [theme] = useState<string>(() => {
+    if (typeof window === "undefined") return "b";
+    return localStorage.getItem("theme") ?? "b";
+  });
 
   // Prevent rendering until theme is loaded
   if (theme === null) return null;

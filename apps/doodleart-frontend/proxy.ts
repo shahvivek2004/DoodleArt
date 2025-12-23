@@ -7,6 +7,7 @@ import type { NextRequest } from "next/server";
 export const HTTP_URL = process.env.NEXT_PUBLIC_HTTP_URL;
 export const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 export const FE_URL = process.env.NEXT_PUBLIC_FE_URL;
+
 //export const JWT_SECRET = process.env.JWT_SECRET;
 
 // async function verifyToken(token: string) {
@@ -20,7 +21,7 @@ export const FE_URL = process.env.NEXT_PUBLIC_FE_URL;
 //   }
 // }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const token = request.cookies.get("__uIt")?.value;
   const { pathname } = request.nextUrl;
 

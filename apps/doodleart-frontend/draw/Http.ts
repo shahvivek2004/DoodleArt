@@ -1,7 +1,7 @@
 // Http.ts
 
 import axios from "axios";
-import { HTTP_URL } from "@/middleware";
+import { HTTP_URL } from "@/proxy";
 
 export async function getExistingShapes(roomId: string, sharedKey: string) {
   try {

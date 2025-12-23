@@ -1,58 +1,49 @@
-"use client";
-
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import NavButton from "./ButtonComponent/NavButton";
 
-export default function NavBar() {
-  const router = useRouter();
+export default async function NavBar() {
   return (
     <div className="hidden lg:block">
       <div className="flex justify-between items-center p-4 text-[#5f00a3] bg-white gap-8 font-medium">
         {/*Logo Side */}
         <div className="flex flex-row gap-15 justify-center items-center">
           {/* Logo and Title */}
-          <button
-            className="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer"
-            onClick={() => {
-              router.push("/");
-            }}
+          <NavButton
+            route="/"
+            style="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer"
           >
-            <Image
-              src="/weblogo.svg"
-              alt="logo"
-              width={35}
-              height={35}
-              draggable="false"
-            />
-            <div>DoodleArt</div>
-          </button>
+            <>
+              <Image
+                src="/weblogo.svg"
+                alt="Doodleart-logo"
+                width={35}
+                height={35}
+                draggable="false"
+              />
+              <div>DoodleArt</div>
+            </>
+          </NavButton>
 
           {/* Buttons */}
           <div className="flex flex-row gap-5">
-            <button
-              className="hover:bg-[#b59fc45c] p-2 rounded-2xl cursor-pointer"
-              onClick={() => {
-                router.push("/dashboard");
-              }}
+            <NavButton
+              route="/dashboard"
+              style="hover:bg-[#b59fc45c] p-2 rounded-2xl cursor-pointer"
             >
               Dashboard
-            </button>
-            <button
-              className="hover:bg-[#b59fc45c] p-2 rounded-2xl cursor-pointer"
-              onClick={() => {
-                router.push("/about");
-              }}
+            </NavButton>
+            <NavButton
+              route="/about"
+              style="hover:bg-[#b59fc45c] p-2 rounded-2xl cursor-pointer"
             >
               About
-            </button>
-            <button
-              className="hover:bg-[#b59fc45c] p-2 rounded-2xl cursor-pointer"
-              onClick={() => {
-                router.push("/contact-us");
-              }}
+            </NavButton>
+            <NavButton
+              route="/contact-us"
+              style="hover:bg-[#b59fc45c] p-2 rounded-2xl cursor-pointer"
             >
               Contact
-            </button>
+            </NavButton>
           </div>
         </div>
 
@@ -84,22 +75,18 @@ export default function NavBar() {
 
           {/* SignIn and SignUp Buttons */}
           <div className="flex flex-row gap-3 font-semibold">
-            <button
-              className="border border-gray-400 w-30 p-2 rounded-2xl hover:bg-[#b59fc45c] cursor-pointer"
-              onClick={() => {
-                router.push("/signin");
-              }}
+            <NavButton
+              route="/signin"
+              style="border border-gray-400 w-30 p-2 rounded-2xl hover:bg-[#b59fc45c] cursor-pointer"
             >
               Sign In
-            </button>
-            <button
-              className="border border-white w-30 p-2 rounded-2xl bg-[#8131e9] text-white hover:bg-[#8131e989] cursor-pointer"
-              onClick={() => {
-                router.push("/signup");
-              }}
+            </NavButton>
+            <NavButton
+              route="/signup"
+              style="border border-white w-30 p-2 rounded-2xl bg-[#8131e9] text-white hover:bg-[#8131e989] cursor-pointer"
             >
               Sign Up
-            </button>
+            </NavButton>
           </div>
         </div>
       </div>

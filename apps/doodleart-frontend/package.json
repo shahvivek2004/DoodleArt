@@ -6,26 +6,26 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@repo/fullstack-common": "workspace:*",
-    "axios": "^1.10.0",
-    "jose": "^6.0.12",
-    "lucide-react": "^0.525.0",
-    "next": "15.4.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "axios": "^1.13.2",
+    "jose": "^6.1.3",
+    "lucide-react": "^0.561.0",
+    "next": "16.0.10",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@tailwindcss/postcss": "^4.1.11",
+    "@eslint/eslintrc": "^3.3.3",
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^20.19.9",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "eslint": "^9.31.0",
-    "eslint-config-next": "15.3.0",
-    "tailwindcss": "^4.1.11",
-    "typescript": "^5.8.3"
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "16.0.10",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   }
 }

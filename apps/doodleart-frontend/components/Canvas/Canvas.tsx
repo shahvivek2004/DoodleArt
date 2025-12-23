@@ -16,7 +16,7 @@ import {
   Type,
 } from "lucide-react";
 import { Game } from "@/draw/Game";
-import { ShareRoomModal } from "../Dashboard/pop-ups/ShareRoomModal";
+import { ShareRoomModal } from "../Dashboard/PopupComponent/ShareRoomModal";
 import { Instruction } from "./Instruction";
 
 export type Tool =
@@ -121,7 +121,7 @@ export function Canvas({
         g.destroyMouseHandlers();
       };
     }
-  }, [bgcanvasRef, roomId, socket, sharedKey]);
+  }, [roomId, socket, sharedKey]);
 
   return (
     <div
