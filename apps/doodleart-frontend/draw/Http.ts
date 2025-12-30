@@ -1,5 +1,6 @@
 // Http.ts
 
+import { nanoid } from "nanoid";
 import axios from "axios";
 import { HTTP_URL } from "@/proxy";
 
@@ -10,11 +11,11 @@ export async function getExistingShapes(roomId: string, sharedKey: string) {
       { withCredentials: true },
     );
     const messages = res.data.messages;
-    //console.log(messages);
-    const shapes = messages.map((x: { message: string; id: number }) => {
+    const shapes = messages.map((x: { message: string; id: number, publicId?: string }) => {
+      const publicId = x.publicId;
       const messageId = x.id;
       const messageData = JSON.parse(x.message);
-      const newData = { ...messageData, id: messageId };
+      const newData = { ...messageData, id: messageId, pid: publicId };
       return newData;
     });
 
@@ -22,4 +23,10 @@ export async function getExistingShapes(roomId: string, sharedKey: string) {
   } catch (error) {
     throw error;
   }
+}
+
+
+export function getID() {
+  const id = nanoid();
+  return id;
 }

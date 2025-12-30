@@ -10,14 +10,14 @@ export default async function NavBar() {
           {/* Logo and Title */}
           <NavButton
             route="/"
-            style="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer"
+            style="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer justify-center items-center"
           >
             <>
               <Image
                 src="/weblogo.svg"
                 alt="Doodleart-logo"
-                width={35}
-                height={35}
+                width={50}
+                height={50}
                 draggable="false"
               />
               <div>DoodleArt</div>

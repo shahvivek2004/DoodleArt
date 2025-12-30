@@ -13,7 +13,7 @@ export default function SideBar() {
       <div className="lg:hidden flex justify-between items-center p-4 text-[#5f00a3] bg-white gap-8 font-medium">
         {/* Logo and Title */}
         <button
-          className="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer"
+          className="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer justify-center items-center"
           onClick={() => {
             router.push("/");
           }}
@@ -21,8 +21,8 @@ export default function SideBar() {
           <Image
             src="/weblogo.svg"
             alt="logo"
-            width={35}
-            height={35}
+            width={50}
+            height={50}
             draggable="false"
           />
           <div>DoodleArt</div>
@@ -61,7 +61,7 @@ export default function SideBar() {
 
           {/* Site Logos */}
           <button
-            className="flex items-center mb-8 gap-2.5 cursor-pointer"
+            className="flex flex-row justify-center items-center mb-8 gap-1 cursor-pointer"
             onClick={() => {
               router.push("/");
             }}
@@ -69,8 +69,8 @@ export default function SideBar() {
             <Image
               src="/weblogo.svg"
               alt="logo"
-              width={30}
-              height={30}
+              width={50}
+              height={50}
               draggable="false"
             />
             <h2 className="text-3xl font-bold text-black">DoodleArt</h2>

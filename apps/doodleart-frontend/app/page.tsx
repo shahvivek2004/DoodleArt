@@ -1,6 +1,7 @@
-import Card from "@/components/LandingPage/CardComponent/Card";
+import {Card} from "@/components/LandingPage/CardComponent/Card";
 import NavBar from "@/components/LandingPage/NavBarComponent/NavBar";
 import SideBar from "@/components/LandingPage/SideBarComponent/SideBar";
+import { Cloud, Share2, Sparkles, Users } from "lucide-react";
 
 export default function Home() {
   return (
@@ -34,15 +35,14 @@ export default function Home() {
           {/* Cards */}
           <div className="flex flex-col lg:flex-row gap-6 text-black justify-around">
             {/* Card 1 */}
-            <Card img="share.svg" alt="share" title="Real-time Collaboration">
+            <Card icon={Share2} title="Real-time Collaboration">
               Work together with your team in real-time. Share your drawings
               instantly with a simple link.
             </Card>
 
             {/* Card 2 */}
             <Card
-              img="multiplayer.svg"
-              alt="multiplayer"
+              icon={Users}
               title="Multiple Users Editing"
             >
               Multiple users can edit the same canvas simultaneously. See who’s
@@ -50,9 +50,14 @@ export default function Home() {
             </Card>
 
             {/* Card 3 */}
-            <Card img="smart.svg" alt="drawing" title="Smart Drawings">
+            <Card icon={Sparkles} title="Smart Drawings">
               Intelligent shape recognition and drawing assistance helps you
               create perfect diagrams.
+            </Card>
+
+            <Card icon={Cloud} title="Cloud Backup">
+              Never lose your work. All drawings are automatically backed up to
+              the cloud and accessible anywhere.
             </Card>
           </div>
         </div>

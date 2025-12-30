@@ -1,4 +1,5 @@
 import { Game, Shape } from "./Game";
+import { getID } from "./Http";
 
 export class TextBox {
   private textbox: HTMLTextAreaElement;
@@ -7,6 +8,9 @@ export class TextBox {
   private y: number;
   private app: Game; // Reference to your main application
   private isFinalized: boolean = false;
+  private color: string;
+  private strokeWidth: number;
+  private fontSize: number;
 
   constructor(
     parX: number,
@@ -27,6 +31,9 @@ export class TextBox {
     this.y = y;
     this.app = app;
     this.app.isWriting = true;
+    this.color = color;
+    this.strokeWidth = strokeWidth;
+    this.fontSize = fontSize;
 
     this.textbox = document.createElement("textarea");
     this.textbox.style.resize = "none";
@@ -45,66 +52,70 @@ export class TextBox {
     this.textbox.style.fontFamily = "Finger Paint";
     this.textbox.style.caretColor = `${themeDefault ? "white" : "black"}`;
     this.textbox.value = "";
-    // this.textbox.placeholder = "Type here...";
     this.app.canvas.parentElement?.appendChild(this.textbox);
     this.textbox.focus();
+    this.textbox.addEventListener("blur", this.blurEvent);
+  }
 
-    const blurEvent = () => {
-      finalize();
-    };
+  blurEvent = () => {
+    if (this.isFinalized) return;
+    this.isFinalized = true;
 
-    const finalize = () => {
-      if (this.isFinalized) return;
-      this.isFinalized = true;
+    const trimmedValue = this.textbox.value;
+    const lines = this.textbox.value.split(/\r?\n/);
 
-      const trimmedValue = this.textbox.value;
-      const lines = this.textbox.value.split(/\r?\n/);
+    this.app.isWriting = false;
+    this.app.activeTextBox = undefined;
+    this.app.setTool("cursor");
+    if (this.app.onToolChange) {
+      this.app.onToolChange("cursor");
+    }
 
-      if (trimmedValue.length > 0) {
-        this.context.save();
-        this.context.font = `${fontSize}px "Finger Paint"`;
-        let textWidth = 0;
-        this.context.fillStyle = color;
-        this.context.lineWidth = strokeWidth;
-        for (let i = 0; i < lines.length; i++) {
-          this.context.fillText(lines[i], x, y + fontSize + 8 + i * 24);
-          textWidth = Math.max(
-            textWidth,
-            Math.round(this.context.measureText(lines[i]).width),
-          );
-        }
-        this.context.restore();
-
-        const textShape: Shape = {
-          type: "text",
-          x: x,
-          y: y,
-          content: trimmedValue,
-          width: textWidth,
-          nol: lines.length,
-        };
-
-        this.app.socket.send(
-          JSON.stringify({
-            type: "chat-insert",
-            message: JSON.stringify(textShape),
-            roomId: this.app.roomId,
-          }),
+    if (trimmedValue.length > 0) {
+      this.context.save();
+      this.context.font = `${this.fontSize}px "Finger Paint"`;
+      let textWidth = 0;
+      this.context.fillStyle = this.color;
+      this.context.lineWidth = this.strokeWidth;
+      for (let i = 0; i < lines.length; i++) {
+        this.context.fillText(lines[i], this.x, this.y + this.fontSize + 8 + i * 24);
+        textWidth = Math.max(
+          textWidth,
+          Math.round(this.context.measureText(lines[i]).width),
         );
       }
+      this.context.restore();
 
-      this.app.isWriting = false;
-      this.app.activeTextBox = undefined;
-      this.app.setTool("cursor");
-      if (this.app.onToolChange) {
-        this.app.onToolChange("cursor");
-      }
+      const textShape: Shape = {
+        type: "text",
+        x: this.x,
+        y: this.y,
+        content: trimmedValue,
+        width: textWidth,
+        nol: lines.length,
+      };
 
-      this.textbox.removeEventListener("blur", blurEvent);
-      if (this.textbox.parentElement) {
-        this.app.canvas.parentElement?.removeChild(this.textbox);
-      }
-    };
-    this.textbox.addEventListener("blur", blurEvent);
-  }
+      const chatid = getID();
+      const newShape: Shape = { ...textShape, id: undefined, pid: chatid };
+      this.app.detectedShape = newShape;
+      this.app.selectedShape = newShape;
+      this.app.isSelecting = true;
+      this.app.existingShapes.push(newShape);
+      this.app.render();
+
+      this.app.socket.send(
+        JSON.stringify({
+          type: "chat-insert",
+          message: JSON.stringify(textShape),
+          roomId: this.app.roomId,
+          publicId: chatid
+        }),
+      );
+    }
+
+    this.textbox.removeEventListener("blur", this.blurEvent);
+    if (this.textbox.parentElement) {
+      this.app.canvas.parentElement?.removeChild(this.textbox);
+    }
+  };
 }

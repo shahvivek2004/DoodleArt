@@ -3,56 +3,63 @@
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Tool } from "@/components/Canvas/Canvas";
-import { getExistingShapes } from "./Http";
+import { getExistingShapes, getID } from "./Http";
 import { TextBox } from "./TextBox";
 
 export type Shape =
   | {
-      type: "rect";
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      id?: number;
-    }
+    type: "rect";
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    id?: number;
+    pid?: string;
+  }
   | {
-      type: "elip";
-      centerX: number;
-      centerY: number;
-      radiusX: number;
-      radiusY: number;
-      id?: number;
-    }
+    type: "elip";
+    centerX: number;
+    centerY: number;
+    radiusX: number;
+    radiusY: number;
+    id?: number;
+    pid?: string;
+  }
   | {
-      type: "line";
-      startX: number;
-      startY: number;
-      endX: number;
-      endY: number;
-      id?: number;
-    }
+    type: "line";
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    id?: number;
+    pid?: string;
+  }
   | {
-      type: "pencil";
-      pencilCoords: Array<{ x: number; y: number }>;
-      id?: number;
-    }
+    type: "pencil";
+    pencilCoords: Array<{ x: number; y: number }>;
+    id?: number;
+    pid?: string;
+  }
   | {
-      type: "text";
-      x: number;
-      y: number;
-      content: string;
-      id?: number;
-      width: number;
-      nol: number | 1;
-    }
+    type: "text";
+    x: number;
+    y: number;
+    content: string;
+    id?: number;
+    pid?: string;
+    width: number;
+    nol: number | 1;
+  }
   | {
-      type: "cursor";
-      id?: number;
-    }
+    type: "cursor";
+    id?: number;
+    pid?: string;
+  }
   | {
-      type: "grab";
-      id?: number;
-    };
+    type: "grab";
+    id?: number;
+    pid?: string;
+  };
 
 export class Game {
   private scale: number;
@@ -82,9 +89,9 @@ export class Game {
   private lastSavedPan: { x: number; y: number } = { x: 0, y: 0 };
   private savePanTimeout: number | undefined;
   private saveScaleTimeout: number | undefined;
-  private isSelecting: boolean;
-  private detectedShape: Shape | null;
-  private selectedShape: Shape | null;
+  public isSelecting: boolean;
+  public detectedShape: Shape | null;
+  public selectedShape: Shape | null;
   private lastMouseShapeX = 0;
   private lastMouseShapeY = 0;
   isWriting: boolean;
@@ -204,7 +211,7 @@ export class Game {
     this.updateCanvasRect();
 
     // Clear and redraw without changing viewport
-    this.render();
+    // this.render();
   }
 
   setTheme(themeStateValue: string) {
@@ -240,7 +247,6 @@ export class Game {
         this.onToolChange("grab");
       }
     } catch {
-      //console.error("Failed to load existing shapes:", error);
       this.existingShapes = [];
     }
     this.render();
@@ -249,52 +255,35 @@ export class Game {
   initHandlers() {
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      if (message.type === "self") {
-        const chatid = message.chatId;
+      if (message.type === "chat-insert") {
+        const publicId = message.publicId;
         this.panX = Number(localStorage.getItem("px")) || 0;
         this.panY = Number(localStorage.getItem("py")) || 0;
         this.scale = Number(localStorage.getItem("scale")) || 1;
+
         const parsedShape: Shape = JSON.parse(message.message);
-        const newShape: Shape = { ...parsedShape, id: chatid };
-        this.detectedShape = newShape;
-        this.selectedShape = newShape;
-        this.isSelecting = true;
-        this.existingShapes.push(newShape);
-        this.render();
-      } else if (message.type === "chat-insert") {
-        // console.log("chat");
-        const chatid = message.messageId;
-        this.panX = Number(localStorage.getItem("px")) || 0;
-        this.panY = Number(localStorage.getItem("py")) || 0;
-        this.scale = Number(localStorage.getItem("scale")) || 1;
-        //alert(chatid);
-        const parsedShape: Shape = JSON.parse(message.message);
-        const newShape: Shape = { ...parsedShape, id: chatid };
+        const newShape: Shape = { ...parsedShape, id: undefined, pid: publicId };
 
         this.existingShapes.push(newShape);
-        //console.log(this.existingShapes);
         this.render();
       } else if (message.type === "chat-update") {
-        // console.log("chat-update");
 
         this.panX = Number(localStorage.getItem("px")) || 0;
         this.panY = Number(localStorage.getItem("py")) || 0;
         this.scale = Number(localStorage.getItem("scale")) || 1;
         const newShape: Shape = JSON.parse(message.message);
         const chatId = message.chatId;
-        const finalShape = { ...newShape, id: chatId };
+        const publicId = message.publicId;
+        const finalShape = { ...newShape, id: chatId, pid: publicId };
 
-        this.existingShapes = this.existingShapes.filter(
-          (shape) => shape.id !== chatId,
-        );
+        this.removeShape(chatId, publicId);
         this.existingShapes.push(finalShape);
 
         this.render();
       } else if (message.type === "chat-delete") {
         const chatId = message.chatId;
-        this.existingShapes = this.existingShapes.filter(
-          (shape) => shape.id !== chatId,
-        );
+        const publicId = message.publicId;
+        this.removeShape(chatId, publicId);
         this.render();
       }
     };
@@ -498,7 +487,6 @@ export class Game {
 
   drawShape(shape: Shape) {
     if (shape.type === "rect") {
-      //this.context.strokeRect(shape.x, shape.y, shape.width, shape.height);
       this.context.beginPath();
       this.context.roundRect(shape.x, shape.y, shape.width, shape.height, [25]);
       this.context.stroke();
@@ -513,7 +501,6 @@ export class Game {
         0,
         2 * Math.PI,
       );
-      // Sthis.context.closePath();
       this.context.stroke();
     } else if (shape.type === "line") {
       this.context.beginPath();
@@ -585,7 +572,6 @@ export class Game {
     const height = worldEnd.y - worldStart.y;
 
     if (this.selectedTool === "rect") {
-      //this.context.strokeRect(worldStart.x, worldStart.y, width, height);
       this.context.beginPath();
       this.context.roundRect(worldStart.x, worldStart.y, width, height, [25]);
       this.context.stroke();
@@ -695,9 +681,7 @@ export class Game {
 
       this.lastMouseShapeX = screenCoords.x;
       this.lastMouseShapeY = screenCoords.y;
-      this.existingShapes = this.existingShapes.filter(
-        (shape) => shape.id !== this.selectedShape?.id,
-      );
+      this.removeShape(this.selectedShape.id, this.selectedShape.pid);
       if (this.selectedShape?.type === "rect") {
         const newShape = { ...this.selectedShape };
         newShape.x += worldDeltaX;
@@ -908,26 +892,36 @@ export class Game {
             message: JSON.stringify(this.selectedShape),
             roomId: this.roomId,
             chatId: this.selectedShape?.id,
+            publicId: this.selectedShape.pid
           }),
         );
       }
     }
 
     if (shape) {
-      //this.existingShapes.push(shape);
+      const chatid = getID();
+      const newShape: Shape = { ...shape, id: undefined, pid: chatid };
+
+      this.detectedShape = newShape;
+      this.selectedShape = newShape;
+      this.isSelecting = true;
+      this.existingShapes.push(newShape);
+      this.render();
+
+      this.setTool("cursor");
+      
+      if (this.onToolChange) {
+        this.onToolChange("cursor");
+      }
+
       this.socket.send(
         JSON.stringify({
           type: "chat-insert",
           message: JSON.stringify(shape),
           roomId: this.roomId,
+          publicId: chatid
         }),
       );
-
-      this.setTool("cursor");
-
-      if (this.onToolChange) {
-        this.onToolChange("cursor");
-      }
     }
 
     if (this.onPanChange) {
@@ -993,18 +987,21 @@ export class Game {
           this.onToolChange("text");
         }
       } else if (e.key === "Delete" && this.selectedShape) {
-        // console.log("Delete!");
-        this.existingShapes = this.existingShapes.filter(
-          (x) => x.id !== this.selectedShape?.id,
-        );
+
         const shapeId = this.selectedShape.id;
+        const publicId = this.selectedShape.pid;
+        this.removeShape(shapeId, publicId);
         this.selectedShape = null;
         this.render();
+        if (this.onSelectChange) {
+          this.onSelectChange(false);
+        }
         this.socket.send(
           JSON.stringify({
             type: "chat-delete",
             roomId: this.roomId,
             chatId: shapeId,
+            publicId: publicId
           }),
         );
       } else if (
@@ -1099,12 +1096,19 @@ export class Game {
         // Nerfing it to the one time operation, because I am Broke
         this.clipboard = null;
         this.selectedShape = null;
-
+        const chatid = getID();
+        const newShape: Shape = { ...payload, id: undefined, pid: chatid };
+        this.detectedShape = newShape;
+        this.selectedShape = newShape;
+        this.isSelecting = true;
+        this.existingShapes.push(newShape);
+        this.render();
         this.socket.send(
           JSON.stringify({
             type: "chat-insert",
             message: JSON.stringify(payload),
             roomId: this.roomId,
+            publicId: chatid
           }),
         );
       }
@@ -1209,9 +1213,7 @@ export class Game {
       x >= Math.min(a1, a2) - tolerance && x <= Math.max(a1, a2) + tolerance;
     const withinY =
       y >= Math.min(b1, b2) - tolerance && y <= Math.max(b1, b2) + tolerance;
-    // if(withinX && withinY){
-    //     console.log("Line spotted!");
-    // }
+
     return withinX && withinY;
   };
 
@@ -1319,7 +1321,6 @@ export class Game {
   selectorShape = (X: number, Y: number, W: number, H: number) => {
     const P = 8 / this.scale; // choosen homogenous P-(for padding) (so x=y)
     const sqr = 8 / this.scale; // square, so width = heigth = 10
-
     this.context.beginPath();
 
     // top-circle
@@ -1408,4 +1409,14 @@ export class Game {
 
     return false;
   };
+
+  removeShape(id?: number, pid?: string) {
+    this.existingShapes = this.existingShapes.filter(x =>
+      !(
+        (id && x.id === id) ||
+        (pid && x.pid === pid)
+      )
+    );
+
+  }
 }

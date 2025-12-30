@@ -34,6 +34,7 @@ model Room {
 
 model Chat {
   id       Int      @id @default(autoincrement())
+  publicId String?  @unique
   message  String
   userId   String // this chat done by this user(userid)
   roomId   Int // this chat done in this room(roomid)

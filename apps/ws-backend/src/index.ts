@@ -196,8 +196,6 @@ wss.on("connection", async (ws, req) => {
           return;
         }
 
-        // Sanitize the Shape object
-
         const sanitizedMessage = sanitizeShape(message);
 
         if (!sanitizedMessage) {
@@ -213,21 +211,15 @@ wss.on("connection", async (ws, req) => {
         const finalMessage = JSON.stringify(sanitizedMessage);
 
         try {
-          const chatRecord = await db.chat.create({
+          const publicId = parsedData.publicId;
+          await db.chat.create({
             data: {
+              publicId: publicId,
               roomId: numericRoomId,
               message: finalMessage,
               userId,
             },
           });
-
-          ws.send(
-            JSON.stringify({
-              type: "self",
-              chatId: chatRecord.id,
-              message: finalMessage,
-            }),
-          );
 
           const roomMembers = users.filter(
             (user) =>
@@ -242,13 +234,13 @@ wss.on("connection", async (ws, req) => {
             userId: userId,
             timestamp: new Date().toISOString(),
             roomId,
-            messageId: chatRecord.id,
+            publicId: publicId
           });
 
           roomMembers.forEach((user) => {
             try {
               user.ws.send(broadcastMessage);
-            } catch (error) {}
+            } catch (error) { }
           });
         } catch (error) {
           ws.send(
@@ -268,44 +260,41 @@ wss.on("connection", async (ws, req) => {
         }
 
         if (!currentUser.rooms.includes(roomId)) {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "You must join the room before sending messages.",
-            }),
-          );
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "You must join the room before sending messages.",
+          }));
           return;
         }
 
         const message = JSON.parse(parsedData?.message);
-        if (!message) {
+        if (!message) return;
+
+        const sanitizedMessage = sanitizeShape(message);
+        if (!sanitizedMessage) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "Invalid shape data",
+          }));
           return;
         }
 
-        // Sanitize the Shape object
-
-        const sanitizedMessage = sanitizeShape(message);
-
-        if (!sanitizedMessage) {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "Invalid shape data",
-            }),
-          );
+        const { chatId, publicId } = parsedData;
+        if (!chatId && !publicId) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "Chat ID or Public ID is required",
+          }));
           return;
         }
 
         const finalMessage = JSON.stringify(sanitizedMessage);
 
         try {
+          const whereClause = chatId ? { id: chatId } : { publicId };
           await db.chat.update({
-            data: {
-              message: finalMessage,
-            },
-            where: {
-              id: parsedData.chatId,
-            },
+            data: { message: finalMessage },
+            where: whereClause,
           });
 
           // Broadcast to room members
@@ -313,85 +302,92 @@ wss.on("connection", async (ws, req) => {
             (user) =>
               user.rooms.includes(roomId) &&
               user.ws.readyState === WebSocket.OPEN &&
-              user.userId !== userId,
+              user.userId !== userId
           );
 
           const broadcastMessage = JSON.stringify({
             type: "chat-update",
             message: finalMessage,
-            chatId: parsedData.chatId,
-            userId: userId,
+            chatId,
+            userId,
+            publicId,
           });
 
           roomMembers.forEach((user) => {
             try {
               user.ws.send(broadcastMessage);
             } catch (error) {
-              console.log("error: " + error);
+              console.log("Error broadcasting to user:", error);
             }
           });
         } catch (error) {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "Failed to save your message",
-            }),
-          );
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "Failed to save your message",
+          }));
         }
       }
 
       if (parsedData.type === "chat-delete") {
+        const currentUser = users.find((x) => x.ws === ws);
+
+        // Validate user
+        if (!currentUser) {
+          ws.close(4001, "User not found");
+          return;
+        }
+
+        if (!currentUser.rooms.includes(roomId)) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "You must join the room before sending messages.",
+          }));
+          return;
+        }
+
+        const { chatId, publicId } = parsedData;
+
+        if (!chatId && !publicId) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "Chat ID or Public ID is required",
+          }));
+          return;
+        }
+
         try {
-          const currentUser = users.find((x) => x.ws === ws);
-          if (!currentUser) {
-            ws.close(4001, "User not found");
-            return;
-          }
-
-          if (!currentUser.rooms.includes(roomId)) {
-            ws.send(
-              JSON.stringify({
-                type: "error",
-                message: "You must join the room before sending messages.",
-              }),
-            );
-            return;
-          }
-
+          const whereClause = chatId ? { id: chatId } : { publicId };
           await db.chat.delete({
-            where: {
-              id: parsedData.chatId,
-            },
+            where: whereClause,
           });
 
           const roomMembers = users.filter(
             (user) =>
               user.rooms.includes(roomId) &&
               user.ws.readyState === WebSocket.OPEN &&
-              user.userId !== userId,
+              user.userId !== userId
           );
 
           const broadcastMessage = JSON.stringify({
             type: "chat-delete",
-            chatId: parsedData.chatId,
-            userId: userId,
-            roomId: roomId,
+            chatId,
+            userId,
+            roomId,
+            publicId,
           });
 
           roomMembers.forEach((user) => {
             try {
               user.ws.send(broadcastMessage);
             } catch (error) {
-              console.log("error: " + error);
+              console.log("Error broadcasting to user:", error);
             }
           });
         } catch (error) {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "Failed to save your message",
-            }),
-          );
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "Failed to delete message",
+          }));
         }
       }
     } catch (error) {
@@ -417,4 +413,4 @@ wss.on("connection", async (ws, req) => {
   });
 });
 
-wss.on("error", (error) => {});
+wss.on("error", (error) => { });

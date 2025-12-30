@@ -254,8 +254,8 @@ export default function DashBoard() {
               <Image
                 src="/weblogo.svg"
                 alt="Doodleart-logo"
-                width={35}
-                height={35}
+                width={50}
+                height={50}
                 draggable="false"
               />
               <span className="text-xl md:text-2xl lg:text-3xl font-bold text-white">

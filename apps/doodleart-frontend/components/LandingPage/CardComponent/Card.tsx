@@ -1,32 +1,16 @@
-import Image from "next/image";
-import { ReactNode } from "react";
-
-export default function Card({
-  img,
-  alt,
-  title,
-  children,
-}: {
-  img: string;
-  alt: string;
+import { LucideIcon } from "lucide-react";
+interface CardProps {
+  icon: LucideIcon;
   title: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col border border-gray-400 rounded-2xl p-5 gap-1">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 flex items-center justify-center">
-          <Image
-            src={`/${img}`}
-            alt={`${alt}`}
-            width={28}
-            height={28}
-            draggable="false"
-          />
-        </div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-      </div>
-      <p className="text-left">{children}</p>
-    </div>
-  );
+  children: React.ReactNode;
 }
+
+export const Card: React.FC<CardProps> = ({ icon: Icon, title, children }) => (
+  <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+    <div className="bg-linear-to-br from-purple-100 to-green-100 p-4 rounded-full mb-4">
+      <Icon className="w-8 h-8 text-purple-600" />
+    </div>
+    <h3 className="text-xl font-bold text-gray-800 mb-3">{title}</h3>
+    <p className="text-gray-600 leading-relaxed">{children}</p>
+  </div>
+);

@@ -25,20 +25,20 @@ export const FE_URL = process.env.FE_URL;
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const EXP_TIME = process.env.EXP_TIME;
 // prod
-// const cookieConfig = {
-//   domain: ".doodleart.live",
-//   httpOnly: true,
-//   secure: true,
-//   sameSite: "lax" as const,
-//   maxAge: 1000 * 60 * 60 * 24 * 4,
-// };
-//dev
 const cookieConfig = {
+  domain: ".doodleart.live",
   httpOnly: true,
   secure: true,
   sameSite: "lax" as const,
   maxAge: 1000 * 60 * 60 * 24 * 4,
 };
+//dev
+// const cookieConfig = {
+//   httpOnly: true,
+//   secure: true,
+//   sameSite: "lax" as const,
+//   maxAge: 1000 * 60 * 60 * 24 * 4,
+// };
 const app = express();
 
 app.use(helmet() as unknown as express.RequestHandler);
@@ -110,7 +110,7 @@ app.post("/api/v1/auth/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(result.data.password, 10);
 
     // Enter into DB
-    const userId = (
+    (
       await db.user.create({
         data: {
           email: result.data.email,
@@ -121,7 +121,7 @@ app.post("/api/v1/auth/signup", async (req, res) => {
           id: true,
         },
       })
-    ).id;
+    )
 
     // User registered successfully
     res.status(200).json({
@@ -543,6 +543,7 @@ app.get("/api/v1/user/chats/:roomId", authenticator, async (req, res) => {
         select: {
           id: true,
           message: true,
+          publicId: true
         },
         take: 2000,
       });
