@@ -8,6 +8,8 @@ import {
   Type,
   Slash,
   X,
+  SunMoon,
+  Copy,
 } from "lucide-react";
 
 interface InstructionProps {
@@ -59,13 +61,25 @@ export const Instruction = ({ isOpen, onClose }: InstructionProps) => {
       icon: <Type className="w-4 h-4" />,
       title: "Add Text",
       shortcut: "7",
-      desc: "Click anywhere to type → press Enter or click outside to place text. (Double click with cursor tool also opens text).",
+      desc: "Click anywhere to type. Press Ctrl+Enter or click outside textbox to finalize text. Press Esc to discard/cancel the text.",
     },
     {
       icon: <Trash2 className="w-4 h-4" />,
       title: "Delete Shape",
       shortcut: "Del",
       desc: "With a shape selected (purple highlight), press Delete to remove it.",
+    },
+    {
+      icon: <Copy className="w-4 h-4" />,
+      title: "Copy & Paste Shape",
+      shortcut: "Ctrl+C / Ctrl+V",
+      desc: "With a shape selected, press Ctrl+C to copy it. Press Ctrl+V to paste a copy at the current mouse position.",
+    },
+    {
+      icon: <SunMoon className="w-4 h-4" />,
+      title: "Toggle Theme",
+      shortcut: "Theme Button",
+      desc: "Use the theme button to switch between Light mode and Dark mode.",
     },
   ];
 
@@ -93,7 +107,7 @@ export const Instruction = ({ isOpen, onClose }: InstructionProps) => {
             {steps.map((step, idx) => (
               <div key={idx} className="flex items-start gap-3">
                 {/* Simple icon */}
-                <div className="w-8 h-8 bg-zinc-800 rounded flex items-center justify-center text-zinc-300 flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 bg-zinc-800 rounded flex items-center justify-center text-zinc-300 shrink-0 mt-0.5">
                   {step.icon}
                 </div>
 

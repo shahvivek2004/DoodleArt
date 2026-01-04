@@ -19,6 +19,7 @@ export default async function NavBar() {
                 width={50}
                 height={50}
                 draggable="false"
+                priority
               />
               <div>DoodleArt</div>
             </>
@@ -50,27 +51,38 @@ export default async function NavBar() {
         {/*Sign-In Side*/}
         <div className="flex flex-row gap-5 justify-center items-center">
           {/*Github and Discord Logos */}
-          <a href="https://discord.gg/EPcJrBmjUW">
-            <button className="p-2 rounded-2xl hover:bg-[#b59fc45c] cursor-pointer">
-              <Image
-                src="/discord.svg"
-                alt="github"
-                width={38}
-                height={38}
-                draggable="false"
-              />
-            </button>
+          <a
+            href="https://discord.gg/EPcJrBmjUW"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-2xl hover:bg-[#b59fc45c] cursor-pointer transition-colors inline-block"
+            aria-label="Join our Discord community"
+          >
+            <Image
+              src="/discord.svg"
+              alt="Discord"
+              width={38}
+              height={38}
+              draggable="false"
+              loading="eager"
+            />
           </a>
-          <a href="https://github.com/shahvivek2004/DoodleArt">
-            <button className="p-2 rounded-2xl hover:bg-[#b59fc45c] cursor-pointer">
-              <Image
-                src="/github.svg"
-                alt="github"
-                width={35}
-                height={35}
-                draggable="false"
-              />
-            </button>
+
+          <a
+            href="https://github.com/shahvivek2004/DoodleArt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-2xl hover:bg-[#b59fc45c] cursor-pointer transition-colors inline-block"
+            aria-label="View project on GitHub"
+          >
+            <Image
+              src="/github.svg"
+              alt="GitHub"
+              width={35}
+              height={35}
+              draggable="false"
+              loading="eager"
+            />
           </a>
 
           {/* SignIn and SignUp Buttons */}

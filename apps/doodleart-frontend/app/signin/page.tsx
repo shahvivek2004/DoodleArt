@@ -13,6 +13,7 @@ export default function Signin() {
           width={45}
           height={45}
           draggable="false"
+          priority
         />
         <div>DoodleArt</div>
       </h1>
@@ -35,6 +36,7 @@ export default function Signin() {
                   height={30}
                   className="object-contain"
                   draggable="false"
+                  loading="eager"
                 />
               </button>
             </a>
@@ -48,6 +50,7 @@ export default function Signin() {
                   height={30}
                   className="object-contain"
                   draggable="false"
+                  loading="eager"
                 />
               </button>
             </a>
@@ -61,6 +64,7 @@ export default function Signin() {
                   height={30}
                   className="object-contain"
                   draggable="false"
+                  loading="eager"
                 />
               </button>
             </a>

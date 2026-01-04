@@ -48,7 +48,7 @@ export type Shape =
     id?: number;
     pid?: string;
     width: number;
-    nol: number | 1;
+    nol: number;
   }
   | {
     type: "cursor";
@@ -109,6 +109,8 @@ export class Game {
   private canvasPreviewStrokeWidth: number;
   private canvasSelectorStroke: string;
   private canvasSelectorStrokeWidth: number;
+  private canvasFontSize: number;
+  private canvasFontVerticalOffset: number;
   private dpr: number;
   constructor(
     canvas: HTMLCanvasElement,
@@ -119,9 +121,6 @@ export class Game {
     this.dpr = window.devicePixelRatio || 1;
     this.canvas = canvas;
     this.context = canvas.getContext("2d", { alpha: false })!;
-    this.context.strokeStyle = "rgba(255, 255, 255)";
-    this.context.lineWidth = 3;
-    this.context.font = `20px "Finger Paint"`;
     this.existingShapes = [];
     this.roomId = roomId;
     this.socket = socket;
@@ -145,12 +144,15 @@ export class Game {
     this.canvasBgColor = "#121212";
     this.canvasStrokeColor = "white";
     this.canvasStrokeWidth = 3;
-    this.canvasFontType = `20px "Finger Paint"`;
-    this.canvasFontColor = "white";
     this.canvasPreviewStrokeColor = "white";
     this.canvasPreviewStrokeWidth = 3;
     this.canvasSelectorStroke = "#b15cff";
     this.canvasSelectorStrokeWidth = 1.5;
+
+    this.canvasFontType = "Finger Paint";
+    this.canvasFontColor = "white";
+    this.canvasFontSize = 20;
+    this.canvasFontVerticalOffset = 8;
     this.init();
     this.initHandlers();
     this.initMouseHandlers();
@@ -197,21 +199,20 @@ export class Game {
   };
 
   setTool(tool: Tool) {
-    // Store current state before changing tool
-
+    const prev = this.selectedTool;
     this.selectedTool = tool;
 
     // Reset any ongoing drawing
     this.isDrawing = false;
     this.clicked = false;
     this.pencilCoords = [];
-    this.selectedShape = null;
 
-    // Force canvas rect update when tool changes
+    if (prev === "cursor" && tool !== "cursor") {
+      this.selectedShape = null;
+      this.isSelecting = false;
+    }
+
     this.updateCanvasRect();
-
-    // Clear and redraw without changing viewport
-    // this.render();
   }
 
   setTheme(themeStateValue: string) {
@@ -469,7 +470,7 @@ export class Game {
 
     this.context.strokeStyle = this.canvasStrokeColor;
     this.context.lineWidth = this.canvasStrokeWidth;
-    this.context.font = this.canvasFontType;
+    this.context.font = `${this.canvasFontSize}px ${this.canvasFontType}`;
     this.context.fillStyle = this.canvasFontColor;
 
     this.existingShapes.forEach((shape) => {
@@ -551,13 +552,16 @@ export class Game {
         this.context.stroke();
       }
     } else if (shape.type === "text") {
-      const fontSize = 20;
-      const shapeArr = shape.content.split(/\r?\n/);
-      for (let i = 0; i < shapeArr.length; i++) {
+      const fontSize = this.canvasFontSize
+      const lineHeight = 1.2 * fontSize;
+      const offset = this.canvasFontVerticalOffset;
+
+      const lines = shape.content.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
         this.context.fillText(
-          shapeArr[i],
+          lines[i],
           shape.x,
-          shape.y + fontSize + 8 + i * 24,
+          shape.y + fontSize + offset + i * lineHeight
         );
       }
     }
@@ -868,11 +872,10 @@ export class Game {
         this.context,
         this.scale,
         this,
-        "#ffffff",
-        3,
-        20,
-        this.canvasThemeStyle === "b",
-        this.dpr,
+        this.canvasFontColor,
+        this.canvasFontSize,
+        this.canvasFontType,
+        this.canvasFontVerticalOffset
       );
       return;
     } else if (this.selectedTool === "grab") {
@@ -908,12 +911,6 @@ export class Game {
       this.existingShapes.push(newShape);
       this.render();
 
-      this.setTool("cursor");
-      
-      if (this.onToolChange) {
-        this.onToolChange("cursor");
-      }
-
       this.socket.send(
         JSON.stringify({
           type: "chat-insert",
@@ -922,6 +919,12 @@ export class Game {
           publicId: chatid
         }),
       );
+
+      this.setTool("cursor");
+
+      if (this.onToolChange) {
+        this.onToolChange("cursor");
+      }
     }
 
     if (this.onPanChange) {
@@ -940,11 +943,10 @@ export class Game {
         this.context,
         this.scale,
         this,
-        "#ffffff",
-        3,
-        20,
-        this.canvasThemeStyle === "b",
-        this.dpr,
+        this.canvasFontColor,
+        this.canvasFontSize,
+        this.canvasFontType,
+        this.canvasFontVerticalOffset
       );
     }
   };
@@ -992,6 +994,7 @@ export class Game {
         const publicId = this.selectedShape.pid;
         this.removeShape(shapeId, publicId);
         this.selectedShape = null;
+        this.isSelecting = false;
         this.render();
         if (this.onSelectChange) {
           this.onSelectChange(false);
@@ -1173,11 +1176,16 @@ export class Game {
 
       return false;
     } else if (shape.type === "text") {
-      const textWidth = shape?.width || 150;
+      const textWidth = shape.width || 150;
+      const nol = shape.nol || 1;
+      const offset = this.canvasFontVerticalOffset;
+      const lineHeight = 1.2 * this.canvasFontSize;
+
       const sx = shape.x;
-      const sy = shape.y + 8;
+      const sy = shape.y + offset;
       const ex = shape.x + textWidth;
-      const ey = shape.y + (shape.nol | 1) * 24 + 8;
+      const ey = shape.y + nol * lineHeight + offset;
+
       return sx <= x && x <= ex && sy <= y && y <= ey;
     } else {
       return false;
@@ -1289,10 +1297,15 @@ export class Game {
         this.selectorShape(X, Y, W, H);
       }
     } else if (shape.type === "text") {
+      const nol = shape.nol || 1;
+      const offset = this.canvasFontVerticalOffset;
+      const lineHeight = 1.2 * this.canvasFontSize;
+
       const X = shape.x;
-      const Y = shape.y + 8;
+      const Y = shape.y + offset;
       const W = shape.width || 150;
-      const H = (shape.nol | 1) * 24 + 8;
+      const H = nol * lineHeight + offset;
+
       this.selectorShape(X, Y, W, H);
     } else if (shape.type === "pencil") {
       const len = shape.pencilCoords.length;

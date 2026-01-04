@@ -1,32 +1,32 @@
 "use client";
 import { X } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import NavButton from "../NavBarComponent/ButtonComponent/NavButton";
 
 export default function SideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-  const router = useRouter();
   return (
     <div>
       {/* NavBar for Mobile screens */}
       <div className="lg:hidden flex justify-between items-center p-4 text-[#5f00a3] bg-white gap-8 font-medium">
         {/* Logo and Title */}
-        <button
-          className="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer justify-center items-center"
-          onClick={() => {
-            router.push("/");
-          }}
+        <NavButton
+          style="text-3xl font-bold text-black flex flex-row gap-2 cursor-pointer justify-center items-center"
+          route="/"
         >
-          <Image
-            src="/weblogo.svg"
-            alt="logo"
-            width={50}
-            height={50}
-            draggable="false"
-          />
-          <div>DoodleArt</div>
-        </button>
+          <>
+            <Image
+              src="/weblogo.svg"
+              alt="logo"
+              width={50}
+              height={50}
+              draggable="false"
+              priority
+            />
+            <div>DoodleArt</div>
+          </>
+        </NavButton>
 
         {/* Menu Button - Scroll Bar */}
         <button
@@ -35,7 +35,7 @@ export default function SideBar() {
             setIsSidebarOpen(true);
           }}
         >
-          <Image src="/menu.svg" alt="menu" width={18} height={18} />
+          <Image src="/menu.svg" alt="menu" width={18} height={18} loading="eager" />
           <div className="text-sm">Menu</div>
         </button>
       </div>
@@ -60,126 +60,137 @@ export default function SideBar() {
           </div>
 
           {/* Site Logos */}
-          <button
-            className="flex flex-row justify-center items-center mb-8 gap-1 cursor-pointer"
-            onClick={() => {
-              router.push("/");
-            }}
+          <NavButton
+            style="flex flex-row justify-center items-center mb-8 gap-1 cursor-pointer"
+            route="/"
           >
-            <Image
-              src="/weblogo.svg"
-              alt="logo"
-              width={50}
-              height={50}
-              draggable="false"
-            />
-            <h2 className="text-3xl font-bold text-black">DoodleArt</h2>
-          </button>
+            <>
+              <Image
+                src="/weblogo.svg"
+                alt="logo"
+                width={50}
+                height={50}
+                draggable="false"
+                priority
+              />
+              <h2 className="text-3xl font-bold text-black">DoodleArt</h2>
+            </>
+          </NavButton>
 
           {/* Buttons */}
           <div className="flex flex-col gap-6 text-lg justify-center items-center font-semibold">
             {/* Routing Buttons */}
             <div className="w-full">
-              <button
-                className="hover:bg-[#b59fc45c] w-full text-left p-1 rounded-lg flex gap-2 cursor-pointer"
-                onClick={() => {
-                  router.push("/dashboard");
-                }}
+              <NavButton
+                style="hover:bg-[#b59fc45c] w-full text-left p-2 rounded-lg flex gap-2 cursor-pointer"
+                route="/dashboard"
               >
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <Image
-                    src="/dashboard.svg"
-                    alt="dashboard"
-                    width={24}
-                    height={24}
-                    draggable="false"
-                  />
-                </div>
-                <span>Dashboard</span>
-              </button>
-              <button
-                className="hover:bg-[#b59fc45c] w-full text-left p-1  rounded-lg flex gap-2 cursor-pointer"
-                onClick={() => {
-                  router.push("/about");
-                }}
-              >
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <Image
-                    src="/platform.svg"
-                    alt="platform"
-                    width={24}
-                    height={24}
-                    draggable="false"
-                  />
-                </div>
-                <span>About</span>
-              </button>
-              <button
-                className="hover:bg-[#b59fc45c] w-full text-left p-1 rounded-lg flex gap-2 cursor-pointer"
-                onClick={() => {
-                  router.push("/contact-us");
-                }}
-              >
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <Image
-                    src="/contact.svg"
-                    alt="contact"
-                    width={24}
-                    height={24}
-                    draggable="false"
-                  />
-                </div>
-                <span>Contact</span>
-              </button>
-              <a href="https://discord.gg/EPcJrBmjUW">
-                <button className="hover:bg-[#b59fc45c] w-full text-left p-1 rounded-lg flex gap-2 cursor-pointer">
+                <>
                   <div className="w-8 h-8 flex items-center justify-center">
                     <Image
-                      src="/discord.svg"
-                      alt="discord"
+                      src="/dashboard.svg"
+                      alt="dashboard"
                       width={24}
                       height={24}
                       draggable="false"
+                      loading="eager"
                     />
                   </div>
-                  <p>Discord</p>
-                </button>
-              </a>
+                  <span>Dashboard</span>
+                </>
+              </NavButton>
 
-              <a href="https://github.com/shahvivek2004/DoodleArt">
-                <button className="hover:bg-[#b59fc45c] w-full text-left p-1 rounded-lg flex gap-2 cursor-pointer">
+              <NavButton
+                style="hover:bg-[#b59fc45c] w-full text-left p-2 rounded-lg flex gap-2 cursor-pointer"
+                route="/about"
+              >
+                <>
                   <div className="w-8 h-8 flex items-center justify-center">
                     <Image
-                      src="/github.svg"
-                      alt="github"
+                      src="/platform.svg"
+                      alt="platform"
                       width={24}
                       height={24}
                       draggable="false"
+                      loading="eager"
                     />
                   </div>
-                  <p>GitHub</p>
-                </button>
+                  <span>About</span>
+                </>
+              </NavButton>
+
+              <NavButton
+                style="hover:bg-[#b59fc45c] w-full text-left p-2 rounded-lg flex gap-2 cursor-pointer"
+                route="/contact-us"
+              >
+                <>
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <Image
+                      src="/contact.svg"
+                      alt="contact"
+                      width={24}
+                      height={24}
+                      draggable="false"
+                      loading="eager"
+                    />
+                  </div>
+                  <span>Contact</span>
+                </>
+              </NavButton>
+
+              <a
+                href="https://discord.gg/EPcJrBmjUW"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:bg-[#b59fc45c] w-full text-left p-2 rounded-lg flex gap-2 cursor-pointer transition-colors"
+              >
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <Image
+                    src="/discord.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    draggable="false"
+                    loading="eager"
+                  />
+                </div>
+                <span>Discord</span>
+              </a>
+              <a
+                href="https://github.com/shahvivek2004/DoodleArt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:bg-[#b59fc45c] w-full text-left p-2 rounded-lg flex gap-2 cursor-pointer transition-colors"
+              >
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <Image
+                    src="/github.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    draggable="false"
+                    loading="eager"
+                  />
+                </div>
+                <span>GitHub</span>
               </a>
             </div>
 
             {/* SignIn and SignUp Buttons */}
             <div className="w-full flex flex-col gap-2 mt-3 items-center">
-              <button
-                className="hover:bg-[#b59fc45c] w-[90%] p-2 rounded-lg text-center border border-gray-400 cursor-pointer"
-                onClick={() => {
-                  router.push("/signin");
-                }}
+              <NavButton
+                style="hover:bg-[#b59fc45c] w-[90%] p-2 rounded-lg text-center border border-gray-400 cursor-pointer"
+                route="/signin"
               >
                 <span>Sign In</span>
-              </button>
-              <button
-                className="hover:bg-[#8131e989] w-[90%] p-2 rounded-lg text-center border border-white bg-[#8131e9] text-white cursor-pointer"
-                onClick={() => {
-                  router.push("/signup");
-                }}
+              </NavButton>
+
+              <NavButton
+                style="hover:bg-[#8131e989] w-[90%] p-2 rounded-lg text-center border border-white bg-[#8131e9] text-white cursor-pointer"
+                route="/signup"
               >
                 <span>Sign Up</span>
-              </button>
+              </NavButton>
             </div>
           </div>
         </div>

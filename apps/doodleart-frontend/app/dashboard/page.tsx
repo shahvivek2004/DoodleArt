@@ -257,6 +257,7 @@ export default function DashBoard() {
                 width={50}
                 height={50}
                 draggable="false"
+                priority
               />
               <span className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
                 DoodleArt
