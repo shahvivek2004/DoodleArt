@@ -6,10 +6,12 @@ import {
   Pencil,
   Trash2,
   Type,
-  Slash,
   X,
   SunMoon,
   Copy,
+  Diamond,
+  Minus,
+  LockKeyhole,
 } from "lucide-react";
 
 interface InstructionProps {
@@ -22,22 +24,34 @@ export const Instruction = ({ isOpen, onClose }: InstructionProps) => {
 
   const steps = [
     {
+      icon: <LockKeyhole className="w-4 h-4" />,
+      title: "Lock Tool",
+      shortcut: "Lock / Unlock",
+      desc: "Click on Lock to Keep selected tool active after drawing, Click again to unlock",
+    },
+    {
       icon: <Hand className="w-4 h-4" />,
       title: "Pan Canvas",
-      shortcut: "1",
+      shortcut: "Grabbing / Panning",
       desc: "Select the Grab tool → double click + drag anywhere to move the whole canvas.",
     },
     {
       icon: <MousePointer className="w-4 h-4" />,
       title: "Select & Move Shapes",
-      shortcut: "2",
+      shortcut: "1",
       desc: "Hover near a shape's edge → cursor changes → click to select (purple highlight). Double click + drag to move shape.",
     },
     {
       icon: <Square className="w-4 h-4" />,
       title: "Draw Rectangle",
-      shortcut: "3",
+      shortcut: "2",
       desc: "Double click + drag to create a rectangle.",
+    },
+    {
+      icon: <Diamond className="w-4 h-4" />,
+      title: "Draw Diamond",
+      shortcut: "3",
+      desc: "Double click + drag to create a diamond.",
     },
     {
       icon: <Circle className="w-4 h-4" />,
@@ -46,7 +60,7 @@ export const Instruction = ({ isOpen, onClose }: InstructionProps) => {
       desc: "Double click + drag to create an ellipse.",
     },
     {
-      icon: <Slash className="w-4 h-4" />,
+      icon: <Minus className="w-4 h-4" />,
       title: "Draw Line",
       shortcut: "5",
       desc: "Double click + drag to create a line.",
@@ -95,7 +109,7 @@ export const Instruction = ({ isOpen, onClose }: InstructionProps) => {
           <h2 className="text-lg font-semibold text-zinc-100">How to use</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -133,7 +147,7 @@ export const Instruction = ({ isOpen, onClose }: InstructionProps) => {
         <div className="px-6 py-4 border-t border-zinc-700">
           <button
             onClick={onClose}
-            className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium rounded transition-colors"
+            className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium rounded transition-colors cursor-pointer"
           >
             Got it
           </button>

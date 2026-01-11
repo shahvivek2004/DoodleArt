@@ -11,20 +11,21 @@ export async function getExistingShapes(roomId: string, sharedKey: string) {
       { withCredentials: true },
     );
     const messages = res.data.messages;
-    const shapes = messages.map((x: { message: string; id: number, publicId?: string }) => {
-      const publicId = x.publicId;
-      const messageId = x.id;
-      const messageData = JSON.parse(x.message);
-      const newData = { ...messageData, id: messageId, pid: publicId };
-      return newData;
-    });
+    const shapes = messages.map(
+      (x: { message: string; id: number; publicId?: string }) => {
+        const publicId = x.publicId;
+        const messageId = x.id;
+        const messageData = JSON.parse(x.message);
+        const newData = { ...messageData, id: messageId, pid: publicId };
+        return newData;
+      },
+    );
 
     return shapes;
   } catch (error) {
     throw error;
   }
 }
-
 
 export function getID() {
   const id = nanoid();

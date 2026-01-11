@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   creator: "DoodleArt",
   publisher: "DoodleArt",
   category: "Technology",
-  
+
   alternates: {
     canonical: "https://doodleart.live",
     languages: {

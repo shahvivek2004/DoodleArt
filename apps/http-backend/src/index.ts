@@ -110,18 +110,16 @@ app.post("/api/v1/auth/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(result.data.password, 10);
 
     // Enter into DB
-    (
-      await db.user.create({
-        data: {
-          email: result.data.email,
-          name: result.data.username,
-          password: hashedPassword,
-        },
-        select: {
-          id: true,
-        },
-      })
-    )
+    await db.user.create({
+      data: {
+        email: result.data.email,
+        name: result.data.username,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+      },
+    });
 
     // User registered successfully
     res.status(200).json({
@@ -543,7 +541,7 @@ app.get("/api/v1/user/chats/:roomId", authenticator, async (req, res) => {
         select: {
           id: true,
           message: true,
-          publicId: true
+          publicId: true,
         },
         take: 2000,
       });

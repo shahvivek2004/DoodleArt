@@ -85,6 +85,15 @@ export function sanitizeShape(shape: Shape) {
         nol: sanitizeNumber(shape.nol),
       };
 
+    case "diamond":
+      return {
+        type: "diamond",
+        x: sanitizeNumber(shape.x),
+        y: sanitizeNumber(shape.y),
+        width: sanitizeNumber(shape.width),
+        height: sanitizeNumber(shape.height),
+      };
+
     case "cursor":
       return { type: "cursor" };
 

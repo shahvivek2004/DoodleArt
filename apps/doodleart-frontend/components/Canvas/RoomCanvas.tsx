@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Canvas } from "./Canvas";
 import { Loader } from "../Fetch/Loader";
-import { useRouter } from "next/navigation";
 import { AuthComp } from "../Fetch/AuthComp";
 import { Authorized } from "../Fetch/Authorized";
 
@@ -19,20 +18,11 @@ export function RoomCanvas({
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(true);
-  const router = useRouter();
 
   const [theme] = useState<string>(() => {
     if (typeof window === "undefined") return "b";
     return localStorage.getItem("theme") ?? "b";
   });
-
-  const handleQuit = () => {
-    try {
-      router.push("/dashboard");
-    } catch {
-      alert("Wait for a second...");
-    }
-  };
 
   useEffect(() => {
     let ws: WebSocket | null = null;
@@ -44,7 +34,6 @@ export function RoomCanvas({
           roomId,
         });
         ws.send(leaveData);
-        // localStorage.clear();
         ws.close();
       }
     };
@@ -119,11 +108,11 @@ export function RoomCanvas({
   }
 
   if (!isAuthenticated) {
-    return <AuthComp quitfunc={handleQuit} />;
+    return <AuthComp />;
   }
 
   if (!isAuthorized) {
-    return <Authorized quitfunc={handleQuit} />;
+    return <Authorized />;
   }
 
   if (error) {

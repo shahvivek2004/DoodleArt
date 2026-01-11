@@ -1,10 +1,18 @@
+// Authorized.tsx
+
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
+export const Authorized = () => {
+  const router = useRouter();
   const [theme] = useState<string>(() => {
     if (typeof window === "undefined") return "b";
     return localStorage.getItem("theme") ?? "b";
   });
+
+  const handleQuit = () => {
+    router.push("/dashboard");
+  };
 
   // Prevent rendering until theme is loaded
   if (theme === null) return null;
@@ -45,7 +53,7 @@ export const Authorized = ({ quitfunc }: { quitfunc: () => void }) => {
 
         {/* Button */}
         <button
-          onClick={quitfunc}
+          onClick={handleQuit}
           className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0a0a19] cursor-pointer"
         >
           <svg

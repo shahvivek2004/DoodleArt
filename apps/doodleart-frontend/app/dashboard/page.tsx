@@ -241,8 +241,9 @@ export default function DashBoard() {
   }
 
   if (!isAuthenticated) {
-    return <AuthComp quitfunc={handleSignout} />;
+    return <AuthComp />;
   }
+
   return (
     <div className="bg-[#121212] h-screen flex flex-col overflow-hidden ">
       {/* Nav-bar */}

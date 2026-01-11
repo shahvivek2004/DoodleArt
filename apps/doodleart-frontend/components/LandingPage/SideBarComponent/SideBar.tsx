@@ -35,7 +35,13 @@ export default function SideBar() {
             setIsSidebarOpen(true);
           }}
         >
-          <Image src="/menu.svg" alt="menu" width={18} height={18} loading="eager" />
+          <Image
+            src="/menu.svg"
+            alt="menu"
+            width={18}
+            height={18}
+            loading="eager"
+          />
           <div className="text-sm">Menu</div>
         </button>
       </div>

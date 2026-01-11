@@ -1,4 +1,4 @@
-import {Card} from "@/components/LandingPage/CardComponent/Card";
+import { Card } from "@/components/LandingPage/CardComponent/Card";
 import NavBar from "@/components/LandingPage/NavBarComponent/NavBar";
 import SideBar from "@/components/LandingPage/SideBarComponent/SideBar";
 import { Cloud, Share2, Sparkles, Users } from "lucide-react";
@@ -41,10 +41,7 @@ export default function Home() {
             </Card>
 
             {/* Card 2 */}
-            <Card
-              icon={Users}
-              title="Multiple Users Editing"
-            >
+            <Card icon={Users} title="Multiple Users Editing">
               Multiple users can edit the same canvas simultaneously. See who’s
               drawing what in real-time.
             </Card>

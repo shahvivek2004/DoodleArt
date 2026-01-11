@@ -1,3 +1,5 @@
+// Loader.tsx
+
 "use client";
 
 export const Loader = ({ theme }: { theme: string }) => {

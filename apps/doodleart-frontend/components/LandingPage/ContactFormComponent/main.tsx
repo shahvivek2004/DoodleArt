@@ -31,7 +31,7 @@ export default function ContactFormComponent() {
   };
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>,
   ) => {
     setFormData((prev) => ({
       ...prev,

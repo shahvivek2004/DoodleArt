@@ -234,13 +234,13 @@ wss.on("connection", async (ws, req) => {
             userId: userId,
             timestamp: new Date().toISOString(),
             roomId,
-            publicId: publicId
+            publicId: publicId,
           });
 
           roomMembers.forEach((user) => {
             try {
               user.ws.send(broadcastMessage);
-            } catch (error) { }
+            } catch (error) {}
           });
         } catch (error) {
           ws.send(
@@ -260,10 +260,12 @@ wss.on("connection", async (ws, req) => {
         }
 
         if (!currentUser.rooms.includes(roomId)) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "You must join the room before sending messages.",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "You must join the room before sending messages.",
+            }),
+          );
           return;
         }
 
@@ -272,19 +274,23 @@ wss.on("connection", async (ws, req) => {
 
         const sanitizedMessage = sanitizeShape(message);
         if (!sanitizedMessage) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "Invalid shape data",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Invalid shape data",
+            }),
+          );
           return;
         }
 
         const { chatId, publicId } = parsedData;
         if (!chatId && !publicId) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "Chat ID or Public ID is required",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Chat ID or Public ID is required",
+            }),
+          );
           return;
         }
 
@@ -302,7 +308,7 @@ wss.on("connection", async (ws, req) => {
             (user) =>
               user.rooms.includes(roomId) &&
               user.ws.readyState === WebSocket.OPEN &&
-              user.userId !== userId
+              user.userId !== userId,
           );
 
           const broadcastMessage = JSON.stringify({
@@ -321,10 +327,12 @@ wss.on("connection", async (ws, req) => {
             }
           });
         } catch (error) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "Failed to save your message",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Failed to save your message",
+            }),
+          );
         }
       }
 
@@ -338,20 +346,24 @@ wss.on("connection", async (ws, req) => {
         }
 
         if (!currentUser.rooms.includes(roomId)) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "You must join the room before sending messages.",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "You must join the room before sending messages.",
+            }),
+          );
           return;
         }
 
         const { chatId, publicId } = parsedData;
 
         if (!chatId && !publicId) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "Chat ID or Public ID is required",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Chat ID or Public ID is required",
+            }),
+          );
           return;
         }
 
@@ -365,7 +377,7 @@ wss.on("connection", async (ws, req) => {
             (user) =>
               user.rooms.includes(roomId) &&
               user.ws.readyState === WebSocket.OPEN &&
-              user.userId !== userId
+              user.userId !== userId,
           );
 
           const broadcastMessage = JSON.stringify({
@@ -384,10 +396,12 @@ wss.on("connection", async (ws, req) => {
             }
           });
         } catch (error) {
-          ws.send(JSON.stringify({
-            type: "error",
-            message: "Failed to delete message",
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "Failed to delete message",
+            }),
+          );
         }
       }
     } catch (error) {
@@ -413,4 +427,4 @@ wss.on("connection", async (ws, req) => {
   });
 });
 
-wss.on("error", (error) => { });
+wss.on("error", (error) => {});
