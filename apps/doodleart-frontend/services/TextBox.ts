@@ -1,5 +1,6 @@
-import { Game, Shape } from "./Game";
+import { Game } from "./Game";
 import { getID } from "./Http";
+import { previewState, Shape, textState } from "./types";
 
 export class TextBox {
   private textbox: HTMLTextAreaElement;
@@ -26,20 +27,17 @@ export class TextBox {
     context: CanvasRenderingContext2D,
     scale: number,
     app: Game,
-    color: string,
-    fontSize: number,
-    fontType: string,
-    fontOffset: number,
+    textState: textState,
     isLocked: boolean,
   ) {
     this.context = context;
     this.x = x;
     this.y = y;
     this.app = app;
-    this.fontColor = color;
-    this.fontSize = fontSize;
-    this.fontType = fontType;
-    this.fontOffset = fontOffset;
+    this.fontColor = textState.fontColor;
+    this.fontSize = textState.fontSize;
+    this.fontType = textState.fontType;
+    this.fontOffset = textState.fontVertOffset;
 
     this.isLocked = isLocked;
     this.app.isWriting = true;
@@ -62,12 +60,18 @@ export class TextBox {
     this.textbox.style.position = "absolute";
     this.textbox.value = "";
 
-    const canvasRect = this.app.canvas.getBoundingClientRect();
+    const canvasRect = this.app.canvasState.itCanvas.getBoundingClientRect();
     const absLeft = Math.round(canvasRect.left + parX);
     const absTop = Math.round(canvasRect.top + parY);
 
-    const maxWidth = Math.max(10, this.app.canvas.clientWidth - parX);
-    const maxHeight = Math.max(10, this.app.canvas.clientHeight - parY);
+    const maxWidth = Math.max(
+      10,
+      this.app.canvasState.itCanvas.clientWidth - parX,
+    );
+    const maxHeight = Math.max(
+      10,
+      this.app.canvasState.itCanvas.clientHeight - parY,
+    );
 
     this.textbox.style.left = `${absLeft}px`;
     this.textbox.style.top = `${absTop}px`;
@@ -81,7 +85,7 @@ export class TextBox {
     this.textbox.style.margin = "0";
     this.textbox.style.boxSizing = "border-box";
 
-    this.app.canvas.parentElement?.appendChild(this.textbox);
+    this.app.canvasState.itCanvas.parentElement?.appendChild(this.textbox);
 
     this.lineHeight = Math.round(this.fontSize * 1.2);
 
@@ -159,13 +163,17 @@ export class TextBox {
           }
           this.context.restore();
 
-          const textShape: Shape = {
+          // ✅ FIXED: Added fontColor, fontSize, fontType to the shape
+          const textShape: previewState = {
             type: "text",
             x: this.x,
             y: this.y,
             content: trimmedValue,
             width: textWidth,
             nol: lines.length,
+            fontColor: this.fontColor, // ✅ NOW INCLUDED
+            fontSize: this.fontSize, // ✅ NOW INCLUDED
+            fontType: this.fontType, // ✅ NOW INCLUDED
           };
 
           try {
@@ -175,11 +183,14 @@ export class TextBox {
               id: undefined,
               pid: chatid,
             };
-            this.app.detectedShape = newShape;
-            this.app.selectedShape = newShape;
-            this.app.isSelecting = true;
-            this.app.existingShapes.push(newShape);
-            this.app.render();
+            this.app.selectionState = {
+              isSelecting: true,
+              detectedShape: newShape,
+              selectedShape: newShape,
+            };
+            this.app.onSelectChange?.(newShape);
+            this.app.previewState = null;
+            this.app.markInteractiveDirty();
 
             const payload = {
               type: "chat-insert",

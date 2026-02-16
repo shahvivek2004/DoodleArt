@@ -1,21 +1,11 @@
-// Loader.tsx
-
 "use client";
 
-export const Loader = ({ theme }: { theme: string }) => {
+export const Loader = () => {
   return (
-    <div
-      className={`${theme === "w" ? "bg-white" : "bg-[#121212]"} min-h-screen flex items-center justify-center`}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
       <div className="text-center space-y-4">
-        <div
-          className={`w-12 h-12 border-4 ${theme === "w" ? "border-gray-400" : "border-gray-600"} border-t-purple-500 rounded-full animate-spin mx-auto`}
-        ></div>
-        <p
-          className={`${theme === "w" ? "text-gray-500" : "text-gray-400"} text-lg`}
-        >
-          Loading...
-        </p>
+        <div className="w-12 h-12 border-4 border-white/40 border-t-purple-500 rounded-full animate-spin mx-auto" />
+        <p className="text-white/70 text-sm tracking-wide">Loading…</p>
       </div>
     </div>
   );

@@ -104,7 +104,7 @@ export function RoomCanvas({
   if (theme === null) return null;
 
   if (isLoading) {
-    return <Loader theme={theme} />;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {
@@ -125,7 +125,7 @@ export function RoomCanvas({
 
           <div>
             <h1 className="text-2xl font-bold text-white mb-2">
-              Something went wrong
+              Session Expired
             </h1>
             <p className="text-gray-400">{error}</p>
           </div>

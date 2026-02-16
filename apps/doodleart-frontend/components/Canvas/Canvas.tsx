@@ -1,22 +1,37 @@
 // Canvas.tsx
 
 import { useEffect, useRef, useState } from "react";
-
 import { Github, HelpCircle, Moon, Share2, Sun } from "lucide-react";
-import { Game } from "@/draw/Game";
+import { Game } from "@/services/Game";
 import { ShareRoomModal } from "../Dashboard/PopupComponent/ShareRoomModal";
 import { Instruction } from "./Instruction";
 import { ToolBar } from "./ToolBar";
+import { Shape, textState, themeState, Tool } from "@/services/types";
+import { ThemeBar } from "./ThemeBar";
 
-export type Tool =
-  | "rect"
-  | "pencil"
-  | "elip"
-  | "line"
-  | "text"
-  | "cursor"
-  | "grab"
-  | "diamond";
+export const DEFAULT_VIEW_STATE = JSON.stringify({
+  panx: 0,
+  pany: 0,
+  scale: 1,
+});
+
+export const DEFAULT_THEME_STATE = JSON.stringify({
+  themeStyle: "b",
+  bgColor: "#121212",
+  fillStyle: "transparent",
+  strokeStyle: "#ffffff",
+  strokeWidth: 6,
+  strokeType: "solid",
+  selectorStroke: "#aba8ff",
+  selectorStrokeWidth: 1,
+});
+
+export const DEFAULT_TEXT_STATE = JSON.stringify({
+  fontType: "Finger Paint",
+  fontColor: "#ffffff",
+  fontSize: 20,
+  fontVertOffset: 8,
+});
 
 export function Canvas({
   roomId,
@@ -27,25 +42,34 @@ export function Canvas({
   socket: WebSocket;
   sharedKey: string;
 }) {
-  const [themeState, setThemeState] = useState({
-    value: localStorage.getItem("theme") || "b",
-  });
+  const [viewState] = useState(
+    JSON.parse(localStorage.getItem("view") ?? DEFAULT_VIEW_STATE),
+  );
+
+  const [themeConfig, setThemeConfig] = useState<themeState>(
+    JSON.parse(localStorage.getItem("themeConfig") ?? DEFAULT_THEME_STATE),
+  );
+
+  const [textConfig, setTextConfig] = useState<textState>(
+    JSON.parse(localStorage.getItem("textConfig") ?? DEFAULT_TEXT_STATE),
+  );
+
   const [selectedTool, setSelectedTool] = useState<Tool>("grab");
-  const [selectShape, setSelectShape] = useState<boolean>(false);
+  const [detectedShape, setDetectedShape] = useState<boolean>(false);
+  const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
   const [panningStatus, setPanningStatus] = useState<boolean>(false);
   const [lock, setLock] = useState(false);
 
   const gameRef = useRef<Game | null>(null);
-  const bgcanvasRef = useRef<HTMLCanvasElement>(null);
+  const stCanvasRef = useRef<HTMLCanvasElement>(null);
+  const itCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const [isShareModalOpen, setIsShareModalOpen] = useState({
     check: false,
     sharedKey: "",
     roomId: "",
   });
-  const [instructionModal, setInstructionModal] = useState({
-    isOpen: false,
-  });
+  const [instructionModal, setInstructionModal] = useState({ isOpen: false });
 
   const handleShareRoomModalClose = () => {
     setIsShareModalOpen({ check: false, sharedKey: "", roomId: "" });
@@ -61,50 +85,147 @@ export function Canvas({
         if (panningStatus) return "cursor-grabbing";
         return "cursor-grab";
       case "cursor":
-        if (selectShape) return "cursor-move";
+        if (detectedShape) return "cursor-move";
         return "cursor-default";
       default:
         return "cursor-crosshair";
     }
   };
 
+  const openThemeUI = (): boolean => {
+    return (
+      selectedTool === "rect" ||
+      selectedTool === "diamond" ||
+      selectedTool === "elip" ||
+      selectedTool === "line" ||
+      selectedTool === "pencil" ||
+      selectedTool === "text" ||
+      (selectedShape !== null && selectedTool === "cursor")
+    );
+  };
+
+  const handleThemeToggle = () => {
+    const nextVal = themeConfig.themeStyle === "b" ? "w" : "b";
+    const nextBgColor = themeConfig.themeStyle === "b" ? "#ffffff" : "#121212";
+    const nextSelectorStroke =
+      themeConfig.themeStyle === "b" ? "#834aff" : "#aba8ff";
+    let nextStrokeStyle = themeConfig.strokeStyle;
+    let nextFontColor = textConfig.fontColor;
+    let textChange = false;
+
+    if (themeConfig.themeStyle === "b") {
+      if (themeConfig.strokeStyle === "#ffffff") {
+        nextStrokeStyle = "#000000";
+      }
+      if (textConfig.fontColor === "#ffffff") {
+        nextFontColor = "#000000";
+        textChange = true;
+      }
+    }
+
+    if (themeConfig.themeStyle === "w") {
+      if (themeConfig.strokeStyle === "#000000") {
+        nextStrokeStyle = "#ffffff";
+      }
+      if (textConfig.fontColor === "#000000") {
+        nextFontColor = "#ffffff";
+        textChange = true;
+      }
+    }
+
+    const nextTheme = {
+      themeStyle: nextVal,
+      bgColor: nextBgColor,
+      selectorStroke: nextSelectorStroke,
+      strokeStyle: nextStrokeStyle,
+      strokeType: themeConfig.strokeType,
+      fillStyle: themeConfig.fillStyle,
+      strokeWidth: themeConfig.strokeWidth,
+      selectorStrokeWidth: 1,
+    };
+
+    setThemeConfig(nextTheme);
+    localStorage.setItem("themeConfig", JSON.stringify(nextTheme));
+
+    if (textChange) {
+      const nextTextConfig = {
+        fontType: "Finger Paint",
+        fontColor: nextFontColor,
+        fontSize: 20,
+        fontVertOffset: 8,
+      };
+      setTextConfig(nextTextConfig);
+      localStorage.setItem("textConfig", JSON.stringify(nextTextConfig));
+    }
+  };
+
+  const updateSelectedShapeTheme = (updates: {
+    strokeStyle?: string;
+    strokeWidth?: number;
+    strokeType?: string;
+    fillStyle?: string;
+    fontColor?: string;
+    fontSize?: number;
+    fontType?: string;
+  }) => {
+    if (gameRef.current && selectedShape) {
+      setSelectedShape({ ...selectedShape, ...updates });
+      gameRef.current.updateSelectedShape(updates);
+    }
+  };
+
   // Initialize Game Instance
   useEffect(() => {
-    if (bgcanvasRef.current) {
-      const g = new Game(bgcanvasRef.current, roomId, socket, sharedKey);
-      gameRef.current = g;
+    if (!stCanvasRef.current) return;
+    if (!itCanvasRef.current) return;
 
-      g.registerToolChangeCallback(setSelectedTool);
-      g.registerPanningCallback(setPanningStatus);
-      g.registerSelectingCallback(setSelectShape);
+    const g = new Game(
+      stCanvasRef.current,
+      itCanvasRef.current,
+      roomId,
+      socket,
+      sharedKey,
+    );
+    gameRef.current = g;
 
-      const resizeCanvas = () => {
-        const dpr = window.devicePixelRatio ?? 1;
+    g.registerToolChangeCallback(setSelectedTool);
+    g.registerPanningCallback(setPanningStatus);
+    g.registerDetectingCallback(setDetectedShape);
+    g.registerSelectingCallback(setSelectedShape);
 
-        requestAnimationFrame(() => {
-          // high DPI means : scale up canvas width height scale down canvas css width height
-          g.highDPI(dpr);
-          g.render();
-        });
-      };
+    const resizeCanvas = () => {
+      g.resize();
+    };
 
-      resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-      return () => {
-        window.removeEventListener("resize", resizeCanvas);
-        g.destroyHandlers();
-      };
-    }
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+      g.destroyEventListeneres();
+    };
   }, [roomId, socket, sharedKey]);
 
-  // syncing theme state
+  // syncing text config
   useEffect(() => {
     if (gameRef.current) {
-      gameRef.current.setTheme(themeState.value);
-      gameRef.current.render();
+      gameRef.current.setText(textConfig);
     }
-  }, [themeState.value]);
+  }, [textConfig]);
+
+  // syncing theme config
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.setTheme(themeConfig);
+    }
+  }, [themeConfig]);
+
+  // syncing view state
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.setView(viewState);
+    }
+  }, [viewState]);
 
   // syncing tool state
   useEffect(() => {
@@ -126,37 +247,41 @@ export function Canvas({
     >
       {/* Canvas */}
       <canvas
-        ref={bgcanvasRef}
-        className={`absolute top-0 left-0 w-full h-full z-0 overflow-hidden touch-none select-none`}
+        ref={stCanvasRef}
+        className={`absolute top-0 left-0 w-full h-full z-1 overflow-hidden touch-none select-none`}
+      />
+      <canvas
+        ref={itCanvasRef}
+        className={`absolute top-0 left-0 w-full h-full z-2 overflow-hidden touch-none select-none`}
       />
 
       {/* Tool-bar */}
-      <div
-        className={`absolute left-1/2 transform -translate-x-1/2 z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"} select-none`}
-      >
-        <ToolBar
-          selectedTool={selectedTool}
-          setSelectedTool={setSelectedTool}
-          themeState={themeState}
-          lock={lock}
-          setLock={setLock}
-        />
-      </div>
+      <ToolBar
+        panningStatus={panningStatus}
+        selectedTool={selectedTool}
+        setSelectedTool={setSelectedTool}
+        toggledTheme={themeConfig.themeStyle}
+        lock={lock}
+        setLock={setLock}
+      />
 
+      {/* Top Right Controls */}
       <div
-        className={`absolute z-10 ${panningStatus ? "pointer-events-none" : "pointer-events-auto"} xl:right-4 xl:top-4 xl:flex-row xl:gap-2 right-4 bottom-4 flex-row gap-2 flex h-9`}
+        className={`absolute z-3 ${
+          panningStatus ? "pointer-events-none" : "pointer-events-auto"
+        } xl:right-4 xl:top-4 xl:flex-row xl:gap-2 right-4 bottom-4 flex-row gap-2 flex h-9`}
       >
         {/* Theme Button */}
         <button
-          className={`${themeState.value === "b" ? "bg-[#ffffff] active:bg-[#e5e5e5]" : "bg-[#27272a] active:bg-[#363636]"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
-          onClick={() => {
-            const nextVal = themeState.value === "b" ? "w" : "b";
-            localStorage.setItem("theme", nextVal);
-            setThemeState({ value: nextVal });
-          }}
-          title="Theme"
+          className={`${
+            themeConfig.themeStyle === "b"
+              ? "bg-[#ffffff] active:bg-[#e5e5e5]"
+              : "bg-[#27272a] active:bg-[#363636]"
+          } flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
+          onClick={handleThemeToggle}
+          title="Toggle Theme"
         >
-          {themeState.value === "b" ? (
+          {themeConfig.themeStyle === "b" ? (
             <Sun width={15} height={15} className="text-black" />
           ) : (
             <Moon width={15} height={15} className="text-white" />
@@ -165,7 +290,11 @@ export function Canvas({
 
         {/* Share Button */}
         <button
-          className={`${themeState.value === "b" ? "text-black bg-[#aba8ff] active:bg-[#807cff]" : "text-white bg-[#ae4aff] active:bg-[#a231ff]"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
+          className={`${
+            themeConfig.themeStyle === "b"
+              ? "text-black bg-[#aba8ff] active:bg-[#807cff]"
+              : "text-white bg-[#ae4aff] active:bg-[#a231ff]"
+          } flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
           onClick={() => {
             setIsShareModalOpen({
               check: true,
@@ -183,7 +312,11 @@ export function Canvas({
 
         {/* Help Button */}
         <button
-          className={`${themeState.value === "w" ? "bg-[#e8e8ef] active:bg-[#bbbbbb] text-black" : "bg-[#232329] active:bg-[#363636] text-white"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
+          className={`${
+            themeConfig.themeStyle === "w"
+              ? "bg-[#e8e8ef] active:bg-[#bbbbbb] text-black"
+              : "bg-[#232329] active:bg-[#363636] text-white"
+          } flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
           onClick={() => {
             setInstructionModal({ isOpen: true });
           }}
@@ -192,37 +325,53 @@ export function Canvas({
           <HelpCircle
             width={18}
             height={18}
-            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+            strokeWidth={`${themeConfig.themeStyle === "w" ? 1.7 : 2}`}
           />
         </button>
 
-        {/* Credit Button */}
-
+        {/* GitHub Button */}
         <a
           href="https://github.com/shahvivek2004/DoodleArt"
           target="_blank"
           rel="noopener noreferrer"
           title="View on GitHub"
-          className={`${themeState.value === "w" ? "bg-[#e8e8ef] active:bg-[#bbbbbb] text-black" : "bg-[#232329] active:bg-[#363636] text-white"} flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
+          className={`${
+            themeConfig.themeStyle === "w"
+              ? "bg-[#e8e8ef] active:bg-[#bbbbbb] text-black"
+              : "bg-[#232329] active:bg-[#363636] text-white"
+          } flex flex-row h-9 w-10 xl:w-14 rounded-lg justify-center items-center cursor-pointer hover:scale-105 transition-transform select-none`}
         >
           <Github
             width={18}
             height={18}
-            strokeWidth={`${themeState.value === "w" ? 1.7 : 2}`}
+            strokeWidth={`${themeConfig.themeStyle === "w" ? 1.7 : 2}`}
           />
         </a>
       </div>
 
-      {/* Share pop-up */}
+      {/* Theme Configuration Bar */}
+      <ThemeBar
+        updateSelectedShapeTheme={updateSelectedShapeTheme}
+        selectedShape={selectedShape}
+        panningStatus={panningStatus}
+        openThemeUI={openThemeUI}
+        themeConfig={themeConfig}
+        setTextConfig={setTextConfig}
+        setThemeConfig={setThemeConfig}
+        textConfig={textConfig}
+        selectedTool={selectedTool}
+      />
+
+      {/* Share Modal */}
       <ShareRoomModal
         isOpen={isShareModalOpen.check}
         sharedKey={isShareModalOpen.sharedKey}
         roomId={isShareModalOpen.roomId}
         onClose={handleShareRoomModalClose}
-        theme={themeState.value === "b" ? "dark" : "light"}
+        theme={themeConfig.themeStyle === "b" ? "dark" : "light"}
       />
 
-      {/* Instruction pop-up */}
+      {/* Instruction Modal */}
       <Instruction
         isOpen={instructionModal.isOpen}
         onClose={handleInstructionModalClose}

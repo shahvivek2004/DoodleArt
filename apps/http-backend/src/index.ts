@@ -1,6 +1,6 @@
 import express, { json, Request, Response } from "express";
 import cookieParser from "cookie-parser";
-import { authenticator } from "./config";
+import { authenticator, updateLegacyPidsAsync } from "./config";
 import {
   requiredBodySignup,
   requiredBodySignin,
@@ -16,6 +16,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { Strategy as GithubStrategy } from "passport-github2";
 import env from "dotenv";
+import { nanoid } from "nanoid";
 
 env.config();
 
@@ -519,7 +520,6 @@ app.get("/api/v1/user/chats/:roomId", authenticator, async (req, res) => {
   const sharedKey = req.query.sharedKey;
 
   try {
-    // console.log(sharedKey);
     const data = await db.room.findUnique({
       where: {
         id: roomId,
@@ -529,7 +529,7 @@ app.get("/api/v1/user/chats/:roomId", authenticator, async (req, res) => {
         sharedKey: true,
       },
     });
-    // console.log(data?.sharedKey);
+
     if (sharedKey === data?.sharedKey || authreq.user.id === data?.adminId) {
       const messages = await db.chat.findMany({
         where: {
@@ -546,11 +546,39 @@ app.get("/api/v1/user/chats/:roomId", authenticator, async (req, res) => {
         take: 2000,
       });
 
-      res.status(200).json({ messages });
+      // Process messages: generate PIDs for legacy data
+      const messagesWithPids: any[] = [];
+      const messagesToUpdate: Array<{ id: number; pid: string }> = [];
+
+      for (const msg of messages) {
+        if (!msg.publicId) {
+          // Generate new PID for legacy message
+          const newPid = nanoid();
+          messagesToUpdate.push({ id: msg.id, pid: newPid });
+
+          // Return message with new PID immediately
+          messagesWithPids.push({
+            ...msg,
+            publicId: newPid,
+          });
+        } else {
+          messagesWithPids.push(msg);
+        }
+      }
+
+      // Update legacy messages in background (fire and forget)
+      if (messagesToUpdate.length > 0) {
+        updateLegacyPidsAsync(messagesToUpdate).catch((err) => {
+          console.error("Failed to update legacy PIDs:", err);
+        });
+      }
+
+      res.status(200).json({ messages: messagesWithPids });
     } else {
       res.status(403).json({ message: "Unauthorized Access!" });
     }
   } catch (error) {
+    console.error("Error fetching chats:", error);
     res.status(500).json({ message: "Internal Server Error!" });
   }
 });
@@ -652,10 +680,3 @@ app.post("/api/v1/auth/signout", (req: Request, res: Response) => {
 app.listen(4000, () => {
   console.log(`Server is running at ${HTTP_URL}`);
 });
-
-// Scope of Improvements :-
-//=======================
-// - Room Permissions
-// - Rate Limiting
-// - Use Queues for performance
-// - Use better DS for User object

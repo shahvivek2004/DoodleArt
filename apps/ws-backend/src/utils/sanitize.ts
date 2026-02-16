@@ -19,7 +19,7 @@ export function sanitizeShape(shape: Shape) {
   if (!shape) {
     return null;
   }
-
+  // console.log(shape);
   switch (shape.type) {
     case "rect":
       return {
@@ -28,6 +28,10 @@ export function sanitizeShape(shape: Shape) {
         y: sanitizeNumber(shape.y),
         width: sanitizeNumber(shape.width),
         height: sanitizeNumber(shape.height),
+        fillStyle: shape.fillStyle,
+        strokeStyle: shape.strokeStyle,
+        strokeWidth: shape.strokeWidth,
+        strokeType: shape.strokeType,
       };
 
     case "elip":
@@ -37,6 +41,23 @@ export function sanitizeShape(shape: Shape) {
         centerY: sanitizeNumber(shape.centerY),
         radiusX: sanitizeNumber(shape.radiusX),
         radiusY: sanitizeNumber(shape.radiusY),
+        fillStyle: shape.fillStyle,
+        strokeStyle: shape.strokeStyle,
+        strokeWidth: shape.strokeWidth,
+        strokeType: shape.strokeType,
+      };
+
+    case "diamond":
+      return {
+        type: "diamond",
+        x: sanitizeNumber(shape.x),
+        y: sanitizeNumber(shape.y),
+        width: sanitizeNumber(shape.width),
+        height: sanitizeNumber(shape.height),
+        fillStyle: shape.fillStyle,
+        strokeStyle: shape.strokeStyle,
+        strokeWidth: shape.strokeWidth,
+        strokeType: shape.strokeType,
       };
 
     case "line":
@@ -46,6 +67,9 @@ export function sanitizeShape(shape: Shape) {
         startY: sanitizeNumber(shape.startY),
         endX: sanitizeNumber(shape.endX),
         endY: sanitizeNumber(shape.endY),
+        strokeStyle: shape.strokeStyle,
+        strokeWidth: shape.strokeWidth,
+        strokeType: shape.strokeType,
       };
 
     case "pencil":
@@ -73,6 +97,9 @@ export function sanitizeShape(shape: Shape) {
       return {
         type: "pencil",
         pencilCoords: sanitizedCoords,
+        strokeStyle: shape.strokeStyle,
+        strokeWidth: shape.strokeWidth,
+        strokeType: shape.strokeType,
       };
 
     case "text":
@@ -83,22 +110,10 @@ export function sanitizeShape(shape: Shape) {
         width: sanitizeNumber(shape.width),
         content: sanitizeString(shape.content),
         nol: sanitizeNumber(shape.nol),
+        fontColor: shape.fontColor,
+        fontSize: shape.fontSize,
+        fontType: shape.fontType,
       };
-
-    case "diamond":
-      return {
-        type: "diamond",
-        x: sanitizeNumber(shape.x),
-        y: sanitizeNumber(shape.y),
-        width: sanitizeNumber(shape.width),
-        height: sanitizeNumber(shape.height),
-      };
-
-    case "cursor":
-      return { type: "cursor" };
-
-    case "grab":
-      return { type: "grab" };
 
     default:
       return null;

@@ -209,7 +209,7 @@ wss.on("connection", async (ws, req) => {
         }
 
         const finalMessage = JSON.stringify(sanitizedMessage);
-
+        // console.log(finalMessage);
         try {
           const publicId = parsedData.publicId;
           await db.chat.create({

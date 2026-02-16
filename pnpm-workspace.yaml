@@ -7,9 +7,7 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - '@tailwindcss/oxide'
   - core-js-pure
+  - esbuild
   - prisma
   - sharp
   - unrs-resolver
-
-
-

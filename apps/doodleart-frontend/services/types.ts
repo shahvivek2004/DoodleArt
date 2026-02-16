@@ -1,4 +1,45 @@
-import { WebSocket } from "ws";
+import { getDragMetrics } from "./utils";
+
+export interface canvasState {
+  itCtx: CanvasRenderingContext2D;
+  itCanvas: HTMLCanvasElement;
+  stCtx: CanvasRenderingContext2D;
+  stCanvas: HTMLCanvasElement;
+}
+
+export interface cameraState {
+  panx: number;
+  pany: number;
+  scale: number;
+}
+
+export interface themeState {
+  themeStyle: string;
+  bgColor: string;
+  //---------------------
+  fillStyle: string;
+  strokeStyle: string;
+  strokeWidth: number;
+  strokeType: string;
+  //----------------------
+  selectorStroke: string;
+  selectorStrokeWidth: number;
+}
+
+export interface selectionState {
+  isSelecting: boolean;
+  selectedShape: Shape | null;
+  detectedShape: Shape | null;
+}
+
+export interface textState {
+  fontType: string;
+  fontColor: string;
+  fontSize: number;
+  fontVertOffset: number;
+}
+
+export type Bounds = { x: number; y: number; w: number; h: number };
 
 export type Rectangle = {
   type: "rect";
@@ -83,14 +124,18 @@ export type previewState =
   | Line
   | TextShape;
 export type Shape = previewState & { id?: number; pid: string };
+export type Tool =
+  | "rect"
+  | "pencil"
+  | "elip"
+  | "line"
+  | "text"
+  | "cursor"
+  | "grab"
+  | "diamond";
 
-export const PING_INTERVAL = parseInt(process.env.PING_INTERVAL || "15000");
-export const PING_TIMEOUT = parseInt(process.env.PING_TIMEOUT || "30000");
-
-export interface User {
-  ws: WebSocket;
-  rooms: string[];
-  userId: string;
-  pingTimeout?: NodeJS.Timeout;
-  connectionTime: Date;
-}
+export type ToolBuilder = (ctx: BuildContext) => Shape | null;
+export type BuildContext = {
+  metrics: ReturnType<typeof getDragMetrics>;
+  previewState: previewState | null;
+};

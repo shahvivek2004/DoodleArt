@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from ".";
+import { db } from "@repo/db/prismaClient";
 
 interface authRequest extends Request {
   user: {
@@ -36,5 +37,31 @@ export function authenticator(req: Request, res: Response, next: NextFunction) {
     res
       .status(401)
       .json({ message: "User is unauthenticated! please sign-in again!" });
+  }
+}
+
+// Helper function for background PID updates
+export async function updateLegacyPidsAsync(
+  items: Array<{ id: number; pid: string }>,
+) {
+  try {
+    await db.$transaction(
+      items.map((item) =>
+        db.chat.updateMany({
+          where: {
+            id: item.id,
+            publicId: null, // Only update if still null (idempotent)
+          },
+          data: {
+            publicId: item.pid,
+          },
+        }),
+      ),
+    );
+
+    // console.log(`✅ Successfully updated ${items.length} legacy PIDs`);
+  } catch (error) {
+    console.error("❌ Failed to update legacy PIDs:", error);
+    // Don't throw - this is a background task
   }
 }

@@ -25,7 +25,7 @@ import {
   getTrashData,
   setFavorite,
   setTrashData,
-} from "@/draw/indexedDB";
+} from "@/services/indexedDB";
 import { Loader } from "@/components/Fetch/Loader";
 import { AuthComp } from "@/components/Fetch/AuthComp";
 import { Dropdown } from "@/components/Dashboard/DropdownComponent/Dropdown";
@@ -126,8 +126,8 @@ export default function DashBoard() {
       setData(transformedRooms);
       setIsAuthenticatd(true);
       setLoading(false);
-      if (!localStorage.getItem("theme")) {
-        localStorage.setItem("theme", "b");
+      if (localStorage.getItem("theme")) {
+        localStorage.clear();
       }
     } catch (error) {
       const err = error as AxiosError;
@@ -237,7 +237,7 @@ export default function DashBoard() {
   };
 
   if (loading) {
-    return <Loader theme="b" />;
+    return <Loader />;
   }
 
   if (!isAuthenticated) {
