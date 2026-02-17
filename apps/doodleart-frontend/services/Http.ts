@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 import { HTTP_URL } from "@/proxy";
 import { Shape } from "./types";
+import { computePencilBounds } from "./utils";
 
 // Helper function to apply default styles based on theme
 function applyDefaultStyles(shape: Shape, themeStyle: string): Shape {
@@ -50,27 +51,28 @@ export async function getExistingShapes(
     const messages = res.data.messages;
 
     const shapesById = new Map<string, Shape>();
-    //const shapesByStyle = new Map<string, Set<string>>();
 
     for (const msg of messages) {
       const pid = msg.publicId;
       const messageId = msg.id;
       const messageData: Shape = JSON.parse(msg.message);
 
-      const shapeWithDefaults = applyDefaultStyles(messageData, themeStyle);
+      let shapeWithDefaults = applyDefaultStyles(messageData, themeStyle);
+
+      if (shapeWithDefaults.type === "pencil") {
+        const hasBounds = shapeWithDefaults.x && shapeWithDefaults.width;
+
+        if (!hasBounds) {
+          const bounds = computePencilBounds(shapeWithDefaults.pencilCoords);
+          shapeWithDefaults = { ...shapeWithDefaults, ...bounds };
+        }
+      }
 
       shapesById.set(pid, {
         ...shapeWithDefaults,
         id: messageId,
         pid: pid,
       });
-
-      // const styleKey = createStyleKey(shapeWithDefaults, themeStyle);
-      // if (!shapesByStyle.get(styleKey)) {
-      //   shapesByStyle.set(styleKey, new Set<string>())
-      // }
-
-      // shapesByStyle.get(styleKey)?.add(pid);
     }
 
     return shapesById;

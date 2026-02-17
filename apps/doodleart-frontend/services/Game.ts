@@ -3,6 +3,7 @@ import { TextBox } from "./TextBox";
 import {
   cameraState,
   canvasState,
+  MIN_PENCIL_DIST,
   previewState,
   selectionState,
   Shape,
@@ -17,8 +18,10 @@ import {
 } from "./renderer/renderCanvas";
 import {
   checkDifference,
+  computePencilBounds,
   getDragMetrics,
   hitTest,
+  simplifyRDP,
   TOOL_BUILDERS,
 } from "./utils";
 import { handleToolShortcut } from "./actions/keyDown/numPress";
@@ -473,6 +476,10 @@ export class Game {
         this.isDrawing = true;
         this.previewState = {
           type: "pencil",
+          x: worldCoords.x,
+          y: worldCoords.y,
+          width: 0,
+          height: 0,
           pencilCoords: [{ x: worldCoords.x, y: worldCoords.y }],
           strokeStyle: this.themeState.strokeStyle,
           strokeType: this.themeState.strokeType,
@@ -545,20 +552,33 @@ export class Game {
       );
 
       if (this.selectedTool === "pencil") {
+        // In pointMoveHandler, pencil branch
         if (this.isDrawing) {
           if (!this.previewState || this.previewState.type !== "pencil") {
             this.previewState = {
               type: "pencil",
+              x: worldCoords.x,
+              y: worldCoords.y,
+              width: 0,
+              height: 0,
               pencilCoords: [],
               strokeStyle: this.themeState.strokeStyle,
               strokeType: this.themeState.strokeType,
               strokeWidth: this.themeState.strokeWidth,
             };
           }
-          this.previewState.pencilCoords.push({
-            x: worldCoords.x,
-            y: worldCoords.y,
-          });
+          const len = this.previewState.pencilCoords.length;
+          const last = this.previewState.pencilCoords[len - 1];
+          if (
+            !last ||
+            Math.hypot(worldCoords.x - last.x, worldCoords.y - last.y) >
+              MIN_PENCIL_DIST
+          ) {
+            this.previewState.pencilCoords.push({
+              x: worldCoords.x,
+              y: worldCoords.y,
+            });
+          }
         }
       } else {
         this.previewState = TOOL_BUILDERS[this.selectedTool as Tool]?.({
@@ -627,12 +647,19 @@ export class Game {
         this.themeState,
         this.textState,
       );
-      const shape = TOOL_BUILDERS[this.selectedTool as Tool]?.({
+
+      let shape = TOOL_BUILDERS[this.selectedTool as Tool]?.({
         metrics,
         previewState: this.previewState,
       });
 
       if (shape) {
+        if (shape.type === "pencil") {
+          const bounds = computePencilBounds(shape.pencilCoords);
+          const pencilCoords = simplifyRDP(shape.pencilCoords, 4);
+          shape = { ...shape, ...bounds, pencilCoords };
+        }
+
         const chatid = getID();
         const newShape: Shape = { ...shape, id: undefined, pid: chatid };
 
@@ -910,6 +937,11 @@ export class Game {
 
   // Canvas cleanup function(s)
   destroyEventListeneres() {
+    if (this.activeTextBox) {
+      this.activeTextBox.destroy();
+      this.activeTextBox = undefined;
+    }
+
     if (this.rafId) {
       cancelAnimationFrame(this.rafId);
     }

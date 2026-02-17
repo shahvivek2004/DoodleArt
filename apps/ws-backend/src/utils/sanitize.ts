@@ -97,6 +97,10 @@ export function sanitizeShape(shape: Shape) {
       return {
         type: "pencil",
         pencilCoords: sanitizedCoords,
+        x: shape.x,
+        y: shape.y,
+        width: shape.width,
+        height: shape.height,
         strokeStyle: shape.strokeStyle,
         strokeWidth: shape.strokeWidth,
         strokeType: shape.strokeType,

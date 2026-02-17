@@ -77,26 +77,10 @@ export function isVisible(
     }
 
     case "pencil": {
-      if (shape.pencilCoords.length === 0) {
-        return false;
-      }
-
-      let minX = shape.pencilCoords[0].x;
-      let minY = shape.pencilCoords[0].y;
-      let maxX = minX;
-      let maxY = minY;
-
-      for (const p of shape.pencilCoords) {
-        if (p.x < minX) minX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y > maxY) maxY = p.y;
-      }
-
-      sx = minX;
-      sy = minY;
-      sw = maxX - minX;
-      sh = maxY - minY;
+      sx = shape.x;
+      sy = shape.y;
+      sw = shape.width;
+      sh = shape.height;
       break;
     }
 
@@ -221,19 +205,7 @@ export function getShapeBounds(
     }
 
     case "pencil": {
-      let minX = Infinity,
-        minY = Infinity;
-      let maxX = -Infinity,
-        maxY = -Infinity;
-
-      for (const p of shape.pencilCoords) {
-        minX = Math.min(minX, p.x);
-        minY = Math.min(minY, p.y);
-        maxX = Math.max(maxX, p.x);
-        maxY = Math.max(maxY, p.y);
-      }
-
-      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+      return { x: shape.x, y: shape.y, w: shape.width, h: shape.height };
     }
 
     default:
@@ -368,6 +340,10 @@ export const TOOL_BUILDERS: Record<Tool, ToolBuilder> = {
     if (previewState?.type !== "pencil") return null;
     return {
       type: "pencil",
+      x: previewState.x,
+      y: previewState.y,
+      width: previewState.width,
+      height: previewState.height,
       pencilCoords: [...previewState.pencilCoords],
       strokeStyle: previewState.strokeStyle,
       strokeType: previewState.strokeType,
@@ -412,6 +388,85 @@ export function createStyleKey(shape: Shape, themeStyle: string = "b") {
 
     return `${type}-${color}-${size}-${fill}`;
   }
+}
+
+export function computePencilBounds(coords: Array<{ x: number; y: number }>) {
+  let minX = Infinity,
+    minY = Infinity;
+  let maxX = -Infinity,
+    maxY = -Infinity;
+  for (const p of coords) {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }
+  return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 };
+}
+
+export function simplifyRDP(
+  points: { x: number; y: number }[],
+  epsilon: number,
+): { x: number; y: number }[] {
+  if (points.length < 3) return points;
+
+  const sqEps = epsilon * epsilon;
+
+  const distSq = (
+    p: { x: number; y: number },
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+  ) => {
+    let x = a.x;
+    let y = a.y;
+    let dx = b.x - x;
+    let dy = b.y - y;
+
+    if (dx !== 0 || dy !== 0) {
+      const t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy);
+      if (t > 1) {
+        x = b.x;
+        y = b.y;
+      } else if (t > 0) {
+        x += dx * t;
+        y += dy * t;
+      }
+    }
+
+    dx = p.x - x;
+    dy = p.y - y;
+    return dx * dx + dy * dy;
+  };
+
+  const simplify = (
+    pts: { x: number; y: number }[],
+    first: number,
+    last: number,
+    out: { x: number; y: number }[],
+  ) => {
+    let maxDist = sqEps;
+    let index = -1;
+
+    for (let i = first + 1; i < last; i++) {
+      const d = distSq(pts[i], pts[first], pts[last]);
+      if (d > maxDist) {
+        index = i;
+        maxDist = d;
+      }
+    }
+
+    if (index !== -1) {
+      simplify(pts, first, index, out);
+      simplify(pts, index, last, out);
+    } else {
+      out.push(pts[first]);
+    }
+  };
+
+  const out: { x: number; y: number }[] = [];
+  simplify(points, 0, points.length - 1, out);
+  out.push(points[points.length - 1]);
+  return out;
 }
 
 // // Display Functions

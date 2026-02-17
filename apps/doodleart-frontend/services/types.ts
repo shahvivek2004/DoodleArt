@@ -88,9 +88,14 @@ export type Line = {
   strokeType?: string;
 };
 
+export const MIN_PENCIL_DIST = 0.6; // world units
 export type Pencil = {
   type: "pencil";
   pencilCoords: Array<{ x: number; y: number }>;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   strokeStyle?: string;
   strokeWidth?: number;
   strokeType?: string;
