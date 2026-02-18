@@ -27,6 +27,11 @@ import {
 import { handleToolShortcut } from "./actions/keyDown/numPress";
 import { buildClipboardShape } from "./actions/keyDown/copyPaste";
 import { translateShapes } from "./actions/shapeMutation/translateShape";
+import {
+  DEFAULT_TEXT_STATE,
+  DEFAULT_THEME_STATE,
+  DEFAULT_VIEW_STATE,
+} from "@/services/types";
 
 export class Game {
   private viewState: cameraState;
@@ -97,30 +102,18 @@ export class Game {
       detectedShape: null,
       selectedShape: null,
     };
-    this.lastViewState = { scale: 1, panx: 0, pany: 0 };
-    this.viewState = { scale: 1, panx: 0, pany: 0 };
+
     this.canvasState = {
       itCanvas,
       stCanvas,
       itCtx: itCanvas.getContext("2d")!,
       stCtx: stCanvas.getContext("2d", { alpha: false })!,
     };
-    this.textState = {
-      fontType: "Finger Paint",
-      fontColor: "#ffffff",
-      fontSize: 20,
-      fontVertOffset: 8,
-    };
-    this.themeState = {
-      themeStyle: "b",
-      bgColor: "#121212",
-      fillStyle: "transparent",
-      strokeStyle: "#ffffff",
-      strokeWidth: 4,
-      strokeType: "solid",
-      selectorStroke: "#aba8ff",
-      selectorStrokeWidth: 1,
-    };
+
+    this.lastViewState = DEFAULT_VIEW_STATE;
+    this.viewState = DEFAULT_VIEW_STATE;
+    this.textState = DEFAULT_TEXT_STATE;
+    this.themeState = DEFAULT_THEME_STATE;
     this.init();
   }
 
@@ -497,7 +490,6 @@ export class Game {
       this.liveMouseX = worldCoords.x;
       this.liveMouseY = worldCoords.y;
       if (this.selectedTool === "cursor") {
-        const worldCoords = this.screenToWorld(e.clientX, e.clientY);
         const shape = this.detectElement(worldCoords.x, worldCoords.y);
 
         if (shape) {
@@ -655,8 +647,11 @@ export class Game {
 
       if (shape) {
         if (shape.type === "pencil") {
-          const bounds = computePencilBounds(shape.pencilCoords);
           const pencilCoords = simplifyRDP(shape.pencilCoords, 4);
+          const bounds = computePencilBounds(pencilCoords);
+          // const l1 = shape.pencilCoords.length;
+          // const l2 = pencilCoords.length;
+          // console.log(`before: ${l1} and after: ${l2} , reduction by ${Math.round(((l1-l2)*100)/l1)}%`)
           shape = { ...shape, ...bounds, pencilCoords };
         }
 
@@ -778,7 +773,6 @@ export class Game {
 
       const chatid = getID();
       const newShape: Shape = { ...payload, id: undefined, pid: chatid };
-      console.log(payload);
 
       this.selectionState = {
         isSelecting: true,

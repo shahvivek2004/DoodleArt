@@ -469,53 +469,15 @@ export function simplifyRDP(
   return out;
 }
 
-// // Display Functions
-//   isShapeVisible(shape: Shape): boolean {
-//     const margin = 50; // Extra margin for partially visible shapes
-//     const viewportLeft = -this.panX / this.scale - margin;
-//     const viewportTop = -this.panY / this.scale - margin;
-//     const viewportRight =
-//       viewportLeft + this.canvas.width / this.scale + margin;
-//     const viewportBottom =
-//       viewportTop + this.canvas.height / this.scale + margin;
-
-//     // Check bounds based on shape type
-//     switch (shape.type) {
-//       case "rect":
-//         return (
-//           shape.x < viewportRight &&
-//           shape.x + shape.width > viewportLeft &&
-//           shape.y < viewportBottom &&
-//           shape.y + shape.height > viewportTop
-//         );
-//       case "elip":
-//         return (
-//           shape.centerX - shape.radiusX < viewportRight &&
-//           shape.centerX + shape.radiusX > viewportLeft &&
-//           shape.centerY - shape.radiusY < viewportBottom &&
-//           shape.centerY + shape.radiusY > viewportTop
-//         );
-//       case "line":
-//         const minX = Math.min(shape.startX, shape.endX);
-//         const maxX = Math.max(shape.startX, shape.endX);
-//         const minY = Math.min(shape.startY, shape.endY);
-//         const maxY = Math.max(shape.startY, shape.endY);
-//         return (
-//           minX < viewportRight &&
-//           maxX > viewportLeft &&
-//           minY < viewportBottom &&
-//           maxY > viewportTop
-//         );
-//       case "pencil":
-//         // Check if any part of pencil stroke is visible
-//         return shape.pencilCoords.some(
-//           (coord) =>
-//             coord.x >= viewportLeft &&
-//             coord.x <= viewportRight &&
-//             coord.y >= viewportTop &&
-//             coord.y <= viewportBottom,
-//         );
-//       default:
-//         return true;
-//     }
-//   }
+export function debounce<T extends (...args: unknown[]) => void>(
+  fn: T,
+  delay: number,
+) {
+  let timer: ReturnType<typeof setTimeout>;
+  const debounced = (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+  debounced.cancel = () => clearTimeout(timer);
+  return debounced;
+}

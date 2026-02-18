@@ -144,3 +144,27 @@ export type BuildContext = {
   metrics: ReturnType<typeof getDragMetrics>;
   previewState: previewState | null;
 };
+
+export const DEFAULT_VIEW_STATE = {
+  panx: 0,
+  pany: 0,
+  scale: 1,
+};
+
+export const DEFAULT_THEME_STATE = {
+  themeStyle: "b",
+  bgColor: "#121212",
+  fillStyle: "transparent",
+  strokeStyle: "#ffffff",
+  strokeWidth: 6,
+  strokeType: "solid",
+  selectorStroke: "#aba8ff",
+  selectorStrokeWidth: 1,
+};
+
+export const DEFAULT_TEXT_STATE = {
+  fontType: "Finger Paint",
+  fontColor: "#ffffff",
+  fontSize: 20,
+  fontVertOffset: 8,
+};

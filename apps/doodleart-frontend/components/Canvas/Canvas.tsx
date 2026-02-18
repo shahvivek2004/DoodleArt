@@ -6,32 +6,16 @@ import { Game } from "@/services/Game";
 import { ShareRoomModal } from "../Dashboard/PopupComponent/ShareRoomModal";
 import { Instruction } from "./Instruction";
 import { ToolBar } from "./ToolBar";
-import { Shape, textState, themeState, Tool } from "@/services/types";
+import {
+  DEFAULT_TEXT_STATE,
+  DEFAULT_THEME_STATE,
+  DEFAULT_VIEW_STATE,
+  Shape,
+  textState,
+  themeState,
+  Tool,
+} from "@/services/types";
 import { ThemeBar } from "./ThemeBar";
-
-export const DEFAULT_VIEW_STATE = JSON.stringify({
-  panx: 0,
-  pany: 0,
-  scale: 1,
-});
-
-export const DEFAULT_THEME_STATE = JSON.stringify({
-  themeStyle: "b",
-  bgColor: "#121212",
-  fillStyle: "transparent",
-  strokeStyle: "#ffffff",
-  strokeWidth: 6,
-  strokeType: "solid",
-  selectorStroke: "#aba8ff",
-  selectorStrokeWidth: 1,
-});
-
-export const DEFAULT_TEXT_STATE = JSON.stringify({
-  fontType: "Finger Paint",
-  fontColor: "#ffffff",
-  fontSize: 20,
-  fontVertOffset: 8,
-});
 
 export function Canvas({
   roomId,
@@ -43,15 +27,20 @@ export function Canvas({
   sharedKey: string;
 }) {
   const [viewState] = useState(
-    JSON.parse(localStorage.getItem("view") ?? DEFAULT_VIEW_STATE),
+    () =>
+      JSON.parse(localStorage.getItem("view") ?? "null") ?? DEFAULT_VIEW_STATE,
   );
 
   const [themeConfig, setThemeConfig] = useState<themeState>(
-    JSON.parse(localStorage.getItem("themeConfig") ?? DEFAULT_THEME_STATE),
+    () =>
+      JSON.parse(localStorage.getItem("themeConfig") ?? "null") ??
+      DEFAULT_THEME_STATE,
   );
 
   const [textConfig, setTextConfig] = useState<textState>(
-    JSON.parse(localStorage.getItem("textConfig") ?? DEFAULT_TEXT_STATE),
+    () =>
+      JSON.parse(localStorage.getItem("textConfig") ?? "null") ??
+      DEFAULT_TEXT_STATE,
   );
 
   const [selectedTool, setSelectedTool] = useState<Tool>("grab");
