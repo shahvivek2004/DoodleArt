@@ -134,32 +134,34 @@ export class Game {
     this.markBothDirty();
   }
 
+  private socketHandler(event: MessageEvent) {
+    const message = JSON.parse(event.data);
+    if (message.type === "chat-insert") {
+      const publicId = message.publicId;
+      const parsedShape: Shape = JSON.parse(message.message);
+      const finalShape: Shape = {
+        ...parsedShape,
+        id: undefined,
+        pid: publicId,
+      };
+
+      this.insertShape(finalShape);
+    } else if (message.type === "chat-update") {
+      const parsedShape: Shape = JSON.parse(message.message);
+      const chatId = message.chatId;
+      const publicId = message.publicId;
+      const finalShape = { ...parsedShape, id: chatId, pid: publicId };
+
+      this.updateShape(finalShape);
+    } else if (message.type === "chat-delete") {
+      const publicId = message.publicId;
+      this.removeShape(publicId);
+    }
+    this.markStaticDirty();
+  }
+
   initSocketHandler() {
-    this.socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === "chat-insert") {
-        const publicId = message.publicId;
-        const parsedShape: Shape = JSON.parse(message.message);
-        const finalShape: Shape = {
-          ...parsedShape,
-          id: undefined,
-          pid: publicId,
-        };
-
-        this.insertShape(finalShape);
-      } else if (message.type === "chat-update") {
-        const parsedShape: Shape = JSON.parse(message.message);
-        const chatId = message.chatId;
-        const publicId = message.publicId;
-        const finalShape = { ...parsedShape, id: chatId, pid: publicId };
-
-        this.updateShape(finalShape);
-      } else if (message.type === "chat-delete") {
-        const publicId = message.publicId;
-        this.removeShape(publicId);
-      }
-      this.markStaticDirty();
-    };
+    this.socket.addEventListener("message", this.socketHandler);
   }
 
   initEventListeneres() {
@@ -564,7 +566,7 @@ export class Game {
           if (
             !last ||
             Math.hypot(worldCoords.x - last.x, worldCoords.y - last.y) >
-              MIN_PENCIL_DIST
+            MIN_PENCIL_DIST
           ) {
             this.previewState.pencilCoords.push({
               x: worldCoords.x,
@@ -619,6 +621,10 @@ export class Game {
         );
       }
     } else if (this.selectedTool === "text" && !this.isWriting) {
+      if (this.activeTextBox) {
+        this.activeTextBox.destroy();
+        this.activeTextBox = undefined;
+      }
       this.activeTextBox = new TextBox(
         e.clientX,
         e.clientY,
@@ -696,6 +702,10 @@ export class Game {
       !this.isWriting
     ) {
       const worldCoords = this.screenToWorld(e.clientX, e.clientY);
+      if (this.activeTextBox) {
+        this.activeTextBox.destroy();
+        this.activeTextBox = undefined;
+      }
       this.activeTextBox = new TextBox(
         e.clientX,
         e.clientY,
@@ -914,14 +924,10 @@ export class Game {
   }
 
   removeShape(pid: string) {
-    // const shape = this.shapeStore.get(pid);
-    // if (!shape) return;
-    // this.removeShapeByStyle(shape, pid);
     this.shapeStore.delete(pid);
   }
 
   insertShape(shape: Shape) {
-    // this.insertShapeByStyle(shape);
     this.shapeStore.set(shape.pid, shape);
   }
 
@@ -944,21 +950,11 @@ export class Game {
       clearTimeout(this.viewSaveTimer);
     }
 
-    this.canvasState.itCanvas.removeEventListener(
-      "pointerdown",
-      this.pointDownHandler,
-    );
-    this.canvasState.itCanvas.removeEventListener(
-      "dblclick",
-      this.doubleClickHandler,
-    );
-    this.canvasState.itCanvas.removeEventListener("wheel", this.wheelHandler, {
-      passive: false,
-    } as AddEventListenerOptions);
-
-    document.removeEventListener("wheel", this.preventBrowserZoom, {
-      passive: false,
-    } as AddEventListenerOptions);
+    this.socket.removeEventListener("message", this.socketHandler);
+    this.canvasState.itCanvas.removeEventListener("pointerdown", this.pointDownHandler);
+    this.canvasState.itCanvas.removeEventListener("dblclick", this.doubleClickHandler);
+    this.canvasState.itCanvas.removeEventListener("wheel", this.wheelHandler);
+    document.removeEventListener("wheel", this.preventBrowserZoom);
     window.removeEventListener("keydown", this.keyDownHandler);
     window.removeEventListener("pointerup", this.pointUpHandler);
     window.removeEventListener("pointermove", this.pointMoveHandler);
