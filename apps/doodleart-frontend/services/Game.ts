@@ -134,7 +134,7 @@ export class Game {
     this.markBothDirty();
   }
 
-  private socketHandler(event: MessageEvent) {
+  private socketHandler = (event: MessageEvent) => {
     const message = JSON.parse(event.data);
     if (message.type === "chat-insert") {
       const publicId = message.publicId;
